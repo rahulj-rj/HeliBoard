@@ -333,49 +333,24 @@ final class SuggestionStripLayoutHelper {
                     (PunctuationSuggestions)suggestedWords, stripView);
         }
 
-        final int wordCountToShow = suggestedWords.getWordCountToShow();
         final int startIndexOfMoreSuggestions = setupWordViewsAndReturnStartIndexOfMoreSuggestions(
                 suggestedWords, mSuggestionsCountInStrip);
-        final TextView centerWordView = mWordViews.get(mCenterPositionInStrip);
-        final int stripWidth = stripView.getWidth();
-        final int centerWidth = getSuggestionWidth(mCenterPositionInStrip, stripWidth);
-        if (wordCountToShow == 1 || getTextScaleX(centerWordView.getText(), centerWidth,
-                centerWordView.getPaint()) < MIN_TEXT_XSCALE) {
-            // Layout only the most relevant suggested word at the center of the suggestion strip
-            // by consolidating all slots in the strip.
-            final int countInStrip = 1;
-            mMoreSuggestionsAvailable = (wordCountToShow > countInStrip);
-            layoutWord(context, mCenterPositionInStrip, stripWidth - mPadding);
-            stripView.addView(centerWordView);
-            setLayoutWeight(centerWordView, 1.0f, ViewGroup.LayoutParams.MATCH_PARENT);
-            if (SuggestionStripView.DEBUG_SUGGESTIONS) {
-                layoutDebugInfo(mCenterPositionInStrip, placerView, stripWidth);
-            }
-            final Integer lastIndex = (Integer)centerWordView.getTag();
-            return (lastIndex == null ? 0 : lastIndex) + 1;
-        }
 
+        // Scrollable strip: all candidates shown with natural widths, no weight-based layout.
+        mMoreSuggestionsAvailable = false;
         final int countInStrip = mSuggestionsCountInStrip;
-        mMoreSuggestionsAvailable = (wordCountToShow > countInStrip);
-        @SuppressWarnings("unused")
-        int x = 0;
         for (int positionInStrip = 0; positionInStrip < countInStrip; positionInStrip++) {
-            if (positionInStrip != 0) {
-                final View divider = mDividerViews.get(positionInStrip);
-                // Add divider if this isn't the left most suggestion in suggestions strip.
-                addDivider(stripView, divider);
-                x += divider.getMeasuredWidth();
+            final TextView wordView = mWordViews.get(positionInStrip);
+            if (TextUtils.isEmpty(wordView.getText())) continue;
+            if (stripView.getChildCount() > 0) {
+                addDivider(stripView, mDividerViews.get(positionInStrip));
             }
-
-            final int width = getSuggestionWidth(positionInStrip, stripWidth);
-            final TextView wordView = layoutWord(context, positionInStrip, width);
+            // Pass unlimited width so text is never ellipsized; clear the more-suggestions hint.
+            layoutWord(context, positionInStrip, Integer.MAX_VALUE / 2);
+            wordView.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
             stripView.addView(wordView);
-            setLayoutWeight(wordView, getSuggestionWeight(positionInStrip), ViewGroup.LayoutParams.MATCH_PARENT);
-            x += wordView.getMeasuredWidth();
-
-            if (SuggestionStripView.DEBUG_SUGGESTIONS) {
-                layoutDebugInfo(positionInStrip, placerView, (int) stripView.getX() + x);
-            }
+            wordView.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
         }
         return startIndexOfMoreSuggestions;
     }

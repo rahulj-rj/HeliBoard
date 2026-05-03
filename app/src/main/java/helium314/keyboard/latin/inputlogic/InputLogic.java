@@ -1189,6 +1189,7 @@ public final class InputLogic {
             }
         } else {
             if (SpaceState.PHANTOM == inputTransaction.getSpaceState()
+                    && codePoint != Constants.CODE_PERIOD
                     && (settingsValues.isUsuallyFollowedBySpace(codePoint) || isInsideDoubleQuoteOrAfterDigit)) {
                 // If we are in phantom space state, and the user presses a separator, we want to
                 // stay in phantom space state so that the next keypress has a chance to add the
@@ -1200,6 +1201,7 @@ public final class InputLogic {
                 // separator does not normally need a space on the right (that's the difference
                 // between swappers and strippers), so we should not stay in phantom space state if
                 // the separator is a stripper. Hence the additional test above.
+                // Period is excluded: user controls spacing after period manually.
                 mSpaceState = SpaceState.PHANTOM;
             } else {
                 // mSpaceState is still SpaceState.NONE, but some characters should typically
@@ -1211,6 +1213,7 @@ public final class InputLogic {
                 // a double quote.
                 if (wasComposingWord
                         && settingsValues.mAutospaceAfterPunctuation
+                        && codePoint != Constants.CODE_PERIOD
                         && (settingsValues.isUsuallyFollowedBySpace(codePoint) || isInsideDoubleQuoteOrAfterDigit)) {
                     mSpaceState = SpaceState.PHANTOM;
                 }
