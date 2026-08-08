@@ -402,6 +402,30 @@
     <string name="prefs_emoji_skin_tone_neutral">Neutral</string>
     <!-- Title of the setting for customizing space bar text -->
     <string name="prefs_space_bar_text">Custom text on space bar</string>
+    <!-- Category headers for custom appearance settings -->
+    <string name="settings_category_suggestion_strip">Suggestion strip</string>
+    <string name="settings_category_key_gaps">Key gaps</string>
+    <!-- Title of the setting for adjusting suggestion strip text size -->
+    <string name="pref_suggestion_text_size">Suggestion text size</string>
+    <!-- Title of the setting that bolds suggestion strip words -->
+    <string name="pref_suggestion_bold">Bold suggestion words</string>
+    <!-- Title of the setting that italicizes suggestion strip words -->
+    <string name="pref_suggestion_italic">Italic suggestion words</string>
+    <!-- Title of the setting that underlines suggestion strip words -->
+    <string name="pref_suggestion_underline">Underline suggestion words</string>
+    <!-- Title of the setting for spacing between suggestion strip words -->
+    <string name="pref_suggestion_word_padding">Spacing between suggestions</string>
+    <!-- Title of the setting for horizontal gap between keys -->
+    <string name="pref_key_horizontal_gap">Horizontal key gap</string>
+    <!-- Title of the setting for vertical gap between keys -->
+    <string name="pref_key_vertical_gap">Vertical key gap</string>
+    <!-- Title of the setting for choosing the toolbar expand button icon -->
+    <string name="pref_toolbar_expand_icon">Toolbar button icon</string>
+    <!-- Toolbar expand icon options -->
+    <string name="pref_toolbar_expand_icon_arrow">Arrow (default)</string>
+    <string name="pref_toolbar_expand_icon_incognito">Incognito</string>
+    <string name="pref_toolbar_expand_icon_settings">Settings gear</string>
+    <string name="pref_toolbar_expand_icon_none">Hidden</string>
     <!-- Title of the setting for adding / removing custom font file -->
     <string name="custom_font">Set custom font from file</string>
     <!-- Title of the setting for adding / removing custom font file used only for emojis -->

@@ -92,6 +92,16 @@ fun AppearanceScreen(
             Settings.PREF_EMOJI_KEY_FIT else null,
         if (prefs.getInt(Settings.PREF_EMOJI_MAX_SDK, 0) >= 24)
             Settings.PREF_EMOJI_SKIN_TONE else null,
+        R.string.settings_category_suggestion_strip,
+        Settings.PREF_SUGGESTION_TEXT_SIZE,
+        Settings.PREF_SUGGESTION_BOLD,
+        Settings.PREF_SUGGESTION_ITALIC,
+        Settings.PREF_SUGGESTION_UNDERLINE,
+        Settings.PREF_SUGGESTION_WORD_PADDING,
+        Settings.PREF_TOOLBAR_EXPAND_ICON,
+        R.string.settings_category_key_gaps,
+        Settings.PREF_KEY_HORIZONTAL_GAP,
+        Settings.PREF_KEY_VERTICAL_GAP,
     )
     SearchSettingsScreen(
         onClickBack = onClickBack,
@@ -328,6 +338,62 @@ fun createAppearanceSettings(context: Context) = listOf(
             "\uD83C\uDFFF" to "\uD83C\uDFFF"
         )
         ListPreference(setting, items, Defaults.PREF_EMOJI_SKIN_TONE) { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
+    },
+    Setting(context, Settings.PREF_SUGGESTION_TEXT_SIZE, R.string.pref_suggestion_text_size) { setting ->
+        SliderPreference(
+            name = setting.title,
+            key = setting.key,
+            default = Defaults.PREF_SUGGESTION_TEXT_SIZE,
+            range = 10f..32f,
+            description = { "$it dp" }
+        )
+    },
+    Setting(context, Settings.PREF_SUGGESTION_BOLD, R.string.pref_suggestion_bold) {
+        SwitchPreference(it, Defaults.PREF_SUGGESTION_BOLD)
+    },
+    Setting(context, Settings.PREF_SUGGESTION_ITALIC, R.string.pref_suggestion_italic) {
+        SwitchPreference(it, Defaults.PREF_SUGGESTION_ITALIC)
+    },
+    Setting(context, Settings.PREF_SUGGESTION_UNDERLINE, R.string.pref_suggestion_underline) {
+        SwitchPreference(it, Defaults.PREF_SUGGESTION_UNDERLINE)
+    },
+    Setting(context, Settings.PREF_SUGGESTION_WORD_PADDING, R.string.pref_suggestion_word_padding) { setting ->
+        SliderPreference(
+            name = setting.title,
+            key = setting.key,
+            default = Defaults.PREF_SUGGESTION_WORD_PADDING,
+            range = 2f..30f,
+            description = { "$it dp" }
+        )
+    },
+    Setting(context, Settings.PREF_KEY_HORIZONTAL_GAP, R.string.pref_key_horizontal_gap) { setting ->
+        SliderPreference(
+            name = setting.title,
+            key = setting.key,
+            default = Defaults.PREF_KEY_HORIZONTAL_GAP,
+            range = 0f..3f,
+            description = { "%.2f%%".format(it) }
+        ) { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
+    },
+    Setting(context, Settings.PREF_KEY_VERTICAL_GAP, R.string.pref_key_vertical_gap) { setting ->
+        SliderPreference(
+            name = setting.title,
+            key = setting.key,
+            default = Defaults.PREF_KEY_VERTICAL_GAP,
+            range = 0f..6f,
+            description = { "%.2f%%".format(it) }
+        ) { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
+    },
+    Setting(context, Settings.PREF_TOOLBAR_EXPAND_ICON, R.string.pref_toolbar_expand_icon) { setting ->
+        val items = listOf(
+            stringResource(R.string.pref_toolbar_expand_icon_arrow) to "arrow",
+            stringResource(R.string.pref_toolbar_expand_icon_incognito) to "incognito",
+            stringResource(R.string.pref_toolbar_expand_icon_settings) to "settings",
+            stringResource(R.string.pref_toolbar_expand_icon_none) to "none",
+        )
+        ListPreference(setting, items, Defaults.PREF_TOOLBAR_EXPAND_ICON) {
+            KeyboardSwitcher.getInstance().setThemeNeedsReload()
+        }
     },
 )
 

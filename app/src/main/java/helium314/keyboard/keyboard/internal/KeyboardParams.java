@@ -7,6 +7,7 @@
 package helium314.keyboard.keyboard.internal;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.SparseIntArray;
@@ -19,7 +20,9 @@ import helium314.keyboard.keyboard.KeyboardId;
 import helium314.keyboard.keyboard.internal.keyboard_parser.LocaleKeyboardInfos;
 import helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode;
 import helium314.keyboard.latin.R;
+import helium314.keyboard.latin.settings.Defaults;
 import helium314.keyboard.latin.settings.Settings;
+import helium314.keyboard.latin.utils.KtxKt;
 import helium314.keyboard.latin.utils.ResourceUtils;
 
 import java.util.ArrayList;
@@ -253,6 +256,18 @@ public class KeyboardParams {
                 // TODO: Fix keyboard geometry calculation clearer. Historically vertical gap between
                 //  rows are determined based on the entire keyboard height including top and bottom
                 //  paddings.
+            }
+            // User-pref overrides (custom): if the user has explicitly set the slider, honor
+            // that value over the theme/narrow defaults. The pref stores percentage (0–6%);
+            // convert to a fraction.
+            final SharedPreferences keyGapPrefs = KtxKt.prefs(context);
+            if (keyGapPrefs.contains(Settings.PREF_KEY_HORIZONTAL_GAP)) {
+                mRelativeHorizontalGap = keyGapPrefs.getFloat(
+                        Settings.PREF_KEY_HORIZONTAL_GAP, Defaults.PREF_KEY_HORIZONTAL_GAP) / 100f;
+            }
+            if (keyGapPrefs.contains(Settings.PREF_KEY_VERTICAL_GAP)) {
+                mRelativeVerticalGap = keyGapPrefs.getFloat(
+                        Settings.PREF_KEY_VERTICAL_GAP, Defaults.PREF_KEY_VERTICAL_GAP) / 100f;
             }
             mHorizontalGap = (int) (mRelativeHorizontalGap * width);
             mVerticalGap = (int) (mRelativeVerticalGap * height);

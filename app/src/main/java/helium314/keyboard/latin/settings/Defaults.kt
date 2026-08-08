@@ -93,6 +93,17 @@ object Defaults {
     val PREF_SIDE_PADDING_SCALE = Array(8) { 0f }
     const val PREF_FONT_SCALE = DEFAULT_SIZE_SCALE
     const val PREF_EMOJI_FONT_SCALE = DEFAULT_SIZE_SCALE
+    // Suggestion strip appearance
+    const val PREF_SUGGESTION_TEXT_SIZE = 18  // dp
+    const val PREF_SUGGESTION_BOLD = true
+    const val PREF_SUGGESTION_ITALIC = false
+    const val PREF_SUGGESTION_UNDERLINE = false
+    const val PREF_SUGGESTION_WORD_PADDING = 10  // dp
+    // Key gap (% of keyboard width/height) — values match the new defaults in config.xml
+    const val PREF_KEY_HORIZONTAL_GAP = 0.5f
+    const val PREF_KEY_VERTICAL_GAP = 0.75f
+    // Toolbar expand button icon: "arrow" | "incognito" | "settings" | "none"
+    const val PREF_TOOLBAR_EXPAND_ICON = "arrow"
     const val PREF_EMOJI_KEY_FIT = true
     const val PREF_EMOJI_SKIN_TONE = ""
     @JvmField

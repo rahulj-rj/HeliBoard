@@ -1245,6 +1245,25 @@ public final class InputLogic {
         mSpaceState = SpaceState.NONE;
         mDeleteCount++;
 
+        // Word-level delete when backspace is held: each repeat tick removes the
+        // previous word (plus any trailing whitespace/punctuation) instead of one char.
+        // Single tap still deletes one char (event.isKeyRepeat() is false on the initial press).
+        if (event.isKeyRepeat()
+                && !mWordComposer.isComposingWord()
+                && !mConnection.hasSelection()
+                && mConnection.getExpectedSelectionStart() > 0) {
+            final SettingsValues settingsValues = inputTransaction.getSettingsValues();
+            final int wordLength = computeWordLengthBeforeCursor(settingsValues.mSpacingAndPunctuations);
+            if (wordLength > 0) {
+                unlearnWordBeingDeleted(settingsValues, currentKeyboardScript);
+                mConnection.deleteTextBeforeCursor(wordLength);
+                inputTransaction.requireShiftUpdate(InputTransaction.SHIFT_UPDATE_LATER);
+                inputTransaction.setRequiresUpdateSuggestions();
+                StatsUtils.onBackspaceWordDelete(wordLength);
+                return;
+            }
+        }
+
         // In many cases after backspace, we need to update the shift state. Normally we need
         // to do this right away to avoid the shift state being out of date in case the user types
         // backspace then some other character very fast. However, in the case of backspace key
@@ -1452,6 +1471,22 @@ public final class InputLogic {
             }
         }
         return "";
+    }
+
+    /**
+     * Returns the number of characters before the cursor that make up the previous "word",
+     * including any trailing whitespace/punctuation directly before the cursor. Used by
+     * the press-and-hold word-delete path in {@link #handleBackspaceEvent}.
+     */
+    private int computeWordLengthBeforeCursor(final SpacingAndPunctuations sp) {
+        final CharSequence before = mConnection.getTextBeforeCursor(64, 0);
+        if (TextUtils.isEmpty(before)) return 0;
+        int i = before.length();
+        // Skip trailing word separators (space, punctuation, etc.).
+        while (i > 0 && sp.isWordSeparator(before.charAt(i - 1))) i--;
+        // Then consume the word itself.
+        while (i > 0 && !sp.isWordSeparator(before.charAt(i - 1))) i--;
+        return before.length() - i;
     }
 
     boolean unlearnWordBeingDeleted(

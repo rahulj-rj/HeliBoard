@@ -30,13 +30,15 @@ const int ForgettingCurveUtils::MULTIPLIER_TWO_IN_PROBABILITY_SCALE = 8;
 const int ForgettingCurveUtils::DECAY_INTERVAL_SECONDS = 2 * 60 * 60;
 
 const int ForgettingCurveUtils::MAX_LEVEL = 15;
-const int ForgettingCurveUtils::MIN_VISIBLE_LEVEL = 2;
+// Lowered from 2 to 1 so a word typed once already shows in suggestions
+// (just at low probability), and so decayed entries stay visible at low prob
+// instead of becoming invisible.
+const int ForgettingCurveUtils::MIN_VISIBLE_LEVEL = 1;
 const int ForgettingCurveUtils::MAX_ELAPSED_TIME_STEP_COUNT = 31;
 const int ForgettingCurveUtils::DISCARD_LEVEL_ZERO_ENTRY_TIME_STEP_COUNT_THRESHOLD = 30;
 const int ForgettingCurveUtils::OCCURRENCES_TO_RAISE_THE_LEVEL = 1;
-// TODO: Evaluate whether this should be 7.5 days.
-// 15 days
-const int ForgettingCurveUtils::DURATION_TO_LOWER_THE_LEVEL_IN_SECONDS = 15 * 24 * 60 * 60;
+// 30 days — slower decay than the AOSP default of 15 days.
+const int ForgettingCurveUtils::DURATION_TO_LOWER_THE_LEVEL_IN_SECONDS = 30 * 24 * 60 * 60;
 
 const float ForgettingCurveUtils::ENTRY_COUNT_HARD_LIMIT_WEIGHT = 1.2;
 
@@ -93,12 +95,12 @@ const ForgettingCurveUtils::ProbabilityTable ForgettingCurveUtils::sProbabilityT
             clampToValidTimeStepCountRange(elapsedTimeStepCount));
 }
 
-/* static */ bool ForgettingCurveUtils::needsToKeep(const HistoricalInfo *const historicalInfo,
-        const HeaderPolicy *const headerPolicy) {
-    return historicalInfo->getLevel() > 0
-            || getElapsedTimeStepCount(historicalInfo->getTimestamp(),
-                    DURATION_TO_LOWER_THE_LEVEL_IN_SECONDS)
-                            < DISCARD_LEVEL_ZERO_ENTRY_TIME_STEP_COUNT_THRESHOLD;
+/* static */ bool ForgettingCurveUtils::needsToKeep(const HistoricalInfo *const /* historicalInfo */,
+        const HeaderPolicy *const /* headerPolicy */) {
+    // Always keep learned entries. Decay still lowers their probability over time
+    // (per createHistoricalInfoToSave), but entries are never discarded automatically.
+    // Words are only removed via explicit user action (long-press → delete).
+    return true;
 }
 
 /* static */ const HistoricalInfo ForgettingCurveUtils::createHistoricalInfoToSave(
@@ -224,8 +226,10 @@ ForgettingCurveUtils::ProbabilityTable::ProbabilityTable() : mTables() {
         // Max probability is 140.
         return static_cast<float>(STRONG_BASE_PROBABILITY * (level + 1));
     } else if (tableId == AGGRESSIVE_PROBABILITY_TABLE_ID) {
-        // Max probability is 160.
-        return static_cast<float>(AGGRESSIVE_BASE_PROBABILITY * (level + 1));
+        // Linear base + quadratic boost so frequently-typed words pull
+        // significantly ahead of rarely-typed ones. Capped to MAX_PROBABILITY (255)
+        // by the caller, so levels past ~11 all sit at the cap.
+        return static_cast<float>(AGGRESSIVE_BASE_PROBABILITY * (level + 1) + level * level);
     } else {
         return NOT_A_PROBABILITY;
     }

@@ -26,7 +26,9 @@ import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
+import android.content.SharedPreferences;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,14 +46,20 @@ import helium314.keyboard.latin.SuggestedWords;
 import helium314.keyboard.latin.SuggestedWords.SuggestedWordInfo;
 import helium314.keyboard.latin.common.ColorType;
 import helium314.keyboard.latin.common.Colors;
+import helium314.keyboard.latin.settings.Defaults;
 import helium314.keyboard.latin.settings.Settings;
 import helium314.keyboard.latin.settings.SettingsValues;
+import helium314.keyboard.latin.utils.KtxKt;
 import helium314.keyboard.latin.utils.ResourceUtils;
 import helium314.keyboard.latin.utils.ViewLayoutUtils;
 
 import java.util.ArrayList;
 
 final class SuggestionStripLayoutHelper {
+    // Orange used for all suggestion strip words. Roughly matches the warm
+    // orange of common terminal status indicators.
+    private static final int SUGGESTION_STRIP_ORANGE = 0xFFFF8C00;
+
     private static final int DEFAULT_SUGGESTIONS_COUNT_IN_STRIP = 3;
     private static final float DEFAULT_CENTER_SUGGESTION_PERCENTILE = 0.40f;
     private static final int DEFAULT_MAX_MORE_SUGGESTIONS_ROW = 2;
@@ -437,31 +445,27 @@ final class SuggestionStripLayoutHelper {
             final TextView wordView = mWordViews.get(positionInStrip);
             wordView.setText(null);
             wordView.setTag(null);
-            // Make this inactive for touches in {@link #layoutWord(int,int)}.
             if (SuggestionStripView.DEBUG_SUGGESTIONS) {
                 mDebugInfoViews.get(positionInStrip).setText(null);
             }
         }
-        int count = 0;
+        // Linear placement for the scrollable strip: typed word at position 0
+        // (suggestedWords index 0 == INDEX_OF_TYPED_WORD), then auto-correction
+        // (index 1), then other suggestions in order. No center-weighted remap.
+        int positionInStrip = 0;
         int indexInSuggestedWords;
         for (indexInSuggestedWords = 0; indexInSuggestedWords < suggestedWords.size()
-                && count < maxSuggestionInStrip; indexInSuggestedWords++) {
-            final int positionInStrip =
-                    getPositionInSuggestionStrip(indexInSuggestedWords, suggestedWords);
-            if (positionInStrip < 0) {
-                continue;
-            }
+                && positionInStrip < maxSuggestionInStrip; indexInSuggestedWords++) {
             final TextView wordView = mWordViews.get(positionInStrip);
-            // {@link TextView#getTag()} is used to get the index in suggestedWords at
-            // {@link SuggestionStripView#onClick(View)}.
             wordView.setTag(indexInSuggestedWords);
             wordView.setText(getStyledSuggestedWord(suggestedWords, indexInSuggestedWords));
-            wordView.setTextColor(getSuggestionTextColor(suggestedWords, indexInSuggestedWords));
+            wordView.setTextColor(SUGGESTION_STRIP_ORANGE);
             KeyboardTypeface.applyToTextView(wordView);
+            applyCustomSuggestionStyle(wordView);
             if (SuggestionStripView.DEBUG_SUGGESTIONS) {
                 mDebugInfoViews.get(positionInStrip).setText(suggestedWords.getDebugString(indexInSuggestedWords));
             }
-            count++;
+            positionInStrip++;
         }
         return indexInSuggestedWords;
     }
@@ -500,6 +504,39 @@ final class SuggestionStripLayoutHelper {
             llp.width = 0;
             llp.height = height;
         }
+    }
+
+    /**
+     * Applies user-configurable styling (text size, bold, italic, underline, padding) to a
+     * suggestion-strip word view. Reads the preferences fresh each layout pass so changes take
+     * effect on the next suggestion update without restarting the IME.
+     */
+    private void applyCustomSuggestionStyle(final TextView wordView) {
+        final Context context = wordView.getContext();
+        final SharedPreferences prefs = KtxKt.prefs(context);
+        final int textSizeDp = prefs.getInt(Settings.PREF_SUGGESTION_TEXT_SIZE, Defaults.PREF_SUGGESTION_TEXT_SIZE);
+        final boolean bold = prefs.getBoolean(Settings.PREF_SUGGESTION_BOLD, Defaults.PREF_SUGGESTION_BOLD);
+        final boolean italic = prefs.getBoolean(Settings.PREF_SUGGESTION_ITALIC, Defaults.PREF_SUGGESTION_ITALIC);
+        final boolean underline = prefs.getBoolean(Settings.PREF_SUGGESTION_UNDERLINE, Defaults.PREF_SUGGESTION_UNDERLINE);
+        final int paddingDp = prefs.getInt(Settings.PREF_SUGGESTION_WORD_PADDING, Defaults.PREF_SUGGESTION_WORD_PADDING);
+
+        wordView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, (float) textSizeDp);
+
+        final int style;
+        if (bold && italic) style = Typeface.BOLD_ITALIC;
+        else if (bold) style = Typeface.BOLD;
+        else if (italic) style = Typeface.ITALIC;
+        else style = Typeface.NORMAL;
+        wordView.setTypeface(wordView.getTypeface(), style);
+
+        if (underline) {
+            wordView.setPaintFlags(wordView.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        } else {
+            wordView.setPaintFlags(wordView.getPaintFlags() & ~Paint.UNDERLINE_TEXT_FLAG);
+        }
+
+        final int paddingPx = (int) (paddingDp * context.getResources().getDisplayMetrics().density);
+        wordView.setPadding(paddingPx, 0, paddingPx, 0);
     }
 
     private static float getTextScaleX(@Nullable final CharSequence text, final int maxWidth, final TextPaint paint) {

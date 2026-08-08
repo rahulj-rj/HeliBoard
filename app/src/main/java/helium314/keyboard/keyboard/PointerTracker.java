@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import helium314.keyboard.event.HapticEvent;
 import helium314.keyboard.keyboard.internal.BatchInputArbiter;
+import helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode;
 import helium314.keyboard.keyboard.internal.BatchInputArbiter.BatchInputArbiterListener;
 import helium314.keyboard.keyboard.internal.BogusMoveEventDetector;
 import helium314.keyboard.keyboard.internal.DrawingProxy;
@@ -1316,8 +1317,27 @@ public final class PointerTracker implements PointerTrackerQueue.Element,
         callListenerOnCodeInput(key, code, mKeyX, mKeyY, SystemClock.uptimeMillis(), true);
     }
 
+    // Backspace word-delete cadence: first word after BACKSPACE_FIRST_DELAY_MS, then
+    // one word every BACKSPACE_REPEAT_INTERVAL_MS while held. Other repeatable keys
+    // continue to use the global mKeyRepeatStartTimeout / mKeyRepeatInterval.
+    private static final int BACKSPACE_FIRST_DELAY_MS = 300;
+    private static final int BACKSPACE_REPEAT_INTERVAL_MS = 200;
+
     private void startKeyRepeatTimer(final int repeatCount) {
-        final int delay = (repeatCount == 1) ? sParams.mKeyRepeatStartTimeout : sParams.mKeyRepeatInterval;
+        // At repeatCount == 1 the repeat hasn't fired yet, so mCurrentRepeatingKeyCode
+        // is still NOT_A_CODE — fall back to the currently-pressed key to detect delete.
+        final int keyCode = (repeatCount == 1 && mCurrentKey != null)
+                ? mCurrentKey.getCode()
+                : mCurrentRepeatingKeyCode;
+        final boolean isDelete = keyCode == KeyCode.DELETE;
+        final int delay;
+        if (repeatCount == 1) {
+            delay = isDelete ? BACKSPACE_FIRST_DELAY_MS : sParams.mKeyRepeatStartTimeout;
+        } else if (isDelete) {
+            delay = BACKSPACE_REPEAT_INTERVAL_MS;
+        } else {
+            delay = sParams.mKeyRepeatInterval;
+        }
         sTimerProxy.startKeyRepeatTimerOf(this, repeatCount, delay);
     }
 

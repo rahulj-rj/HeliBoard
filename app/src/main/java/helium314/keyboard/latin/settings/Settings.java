@@ -105,6 +105,17 @@ public final class Settings implements SharedPreferences.OnSharedPreferenceChang
     public static final String PREF_SIDE_PADDING_SCALE_PREFIX = "side_padding_scale";
     public static final String PREF_FONT_SCALE = "font_scale";
     public static final String PREF_EMOJI_FONT_SCALE = "emoji_font_scale";
+    // Suggestion strip appearance (custom)
+    public static final String PREF_SUGGESTION_TEXT_SIZE = "suggestion_text_size";
+    public static final String PREF_SUGGESTION_BOLD = "suggestion_bold";
+    public static final String PREF_SUGGESTION_ITALIC = "suggestion_italic";
+    public static final String PREF_SUGGESTION_UNDERLINE = "suggestion_underline";
+    public static final String PREF_SUGGESTION_WORD_PADDING = "suggestion_word_padding";
+    // Key gap (custom)
+    public static final String PREF_KEY_HORIZONTAL_GAP = "key_horizontal_gap";
+    public static final String PREF_KEY_VERTICAL_GAP = "key_vertical_gap";
+    // Toolbar expand button icon (custom): "arrow" | "incognito" | "settings" | "none"
+    public static final String PREF_TOOLBAR_EXPAND_ICON = "toolbar_expand_icon";
     public static final String PREF_EMOJI_KEY_FIT = "emoji_key_fit";
     public static final String PREF_EMOJI_SKIN_TONE = "emoji_skin_tone";
     public static final String PREF_SPACE_HORIZONTAL_SWIPE = "horizontal_space_swipe";

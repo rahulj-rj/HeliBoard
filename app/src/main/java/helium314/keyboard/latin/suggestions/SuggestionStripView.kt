@@ -123,6 +123,9 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
     private val toolbarExpandKey = findViewById<ImageButton>(R.id.suggestions_strip_toolbar_key)
     private val incognitoIcon = KeyboardIconsSet.instance.getNewDrawable(ToolbarKey.INCOGNITO.name, context)
     private val toolbarArrowIcon = KeyboardIconsSet.instance.getNewDrawable(KeyboardIconsSet.NAME_TOOLBAR_KEY, context)
+    // User-supplied incognito-style icon (hat + chevron) used when PREF_TOOLBAR_EXPAND_ICON = "incognito".
+    private val customIncognitoIcon = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.toolbar_expand_incognito)
+    private val settingsToolbarIcon = KeyboardIconsSet.instance.getNewDrawable(ToolbarKey.SETTINGS.name, context)
     private val defaultToolbarBackground: Drawable = toolbarExpandKey.background
     private val enabledToolKeyBackground = GradientDrawable()
     private var direction = 1 // 1 if LTR, -1 if RTL
@@ -521,11 +524,20 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         val toolbarIsExpandable = settingsValues.mToolbarMode == ToolbarMode.EXPANDABLE
         if (settingsValues.mIncognitoModeEnabled) {
+            // Incognito mode forces the built-in incognito icon regardless of user pref.
             toolbarExpandKey.setImageDrawable(incognitoIcon)
             toolbarExpandKey.isVisible = true
         } else {
-            toolbarExpandKey.setImageDrawable(toolbarArrowIcon)
-            toolbarExpandKey.isVisible = toolbarIsExpandable
+            val expandIconChoice = context.prefs().getString(
+                Settings.PREF_TOOLBAR_EXPAND_ICON, Defaults.PREF_TOOLBAR_EXPAND_ICON
+            ) ?: Defaults.PREF_TOOLBAR_EXPAND_ICON
+            when (expandIconChoice) {
+                "incognito" -> toolbarExpandKey.setImageDrawable(customIncognitoIcon)
+                "settings" -> toolbarExpandKey.setImageDrawable(settingsToolbarIcon)
+                "none" -> { /* hidden below */ }
+                else -> toolbarExpandKey.setImageDrawable(toolbarArrowIcon)
+            }
+            toolbarExpandKey.isVisible = (expandIconChoice != "none") && toolbarIsExpandable
         }
 
         // hide pinned keys if device is locked, and avoid expanding toolbar
