@@ -1,6 +1,3 @@
 [popup_keys]
 q ~
 l /
-
-[tlds]
-in

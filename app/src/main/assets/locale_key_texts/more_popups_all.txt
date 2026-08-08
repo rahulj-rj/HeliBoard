@@ -10,7 +10,7 @@ s ß š ś ş ș ŝ ſ
 g ğ ģ ġ g\' ĝ
 c ç ć č ċ ĉ
 z ž ź ż
-l ł ĺ ļ ľ ŀ l·l /
+l ł ĺ ļ ľ ŀ l·l
 punctuation !autoColumnOrder!10 \, ? ! # ) ( / ; ' @ : - " + \% & · ¡ ¿
 d ď đ ð
 r ř ŕ ŗ
@@ -21,6 +21,6 @@ k ķ ĸ
 v w ŵ
 h ĥ ħ
 w ŵ w
-q q ~
+q q
 x x
 j ĵ
