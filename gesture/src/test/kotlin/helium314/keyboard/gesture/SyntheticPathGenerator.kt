@@ -106,6 +106,59 @@ object SyntheticPathGenerator {
         return pts
     }
 
+    /**
+     * Inject a caps excursion: at sample [atIndex] the path detours straight up to
+     * [heightKeyHeights] key heights above the keyboard's top edge and comes back,
+     * then continues. Timestamps are recomputed at constant speed so they stay monotonic.
+     */
+    fun withExcursion(
+        path: List<GesturePoint>,
+        geometry: KeyboardGeometry,
+        atIndex: Int,
+        heightKeyHeights: Float = 1.2f,
+        speedPxPerMs: Float = 1.0f,
+    ): List<GesturePoint> {
+        require(path.isNotEmpty())
+        val i = atIndex.coerceIn(0, path.size - 1)
+        val base = path[i]
+        val apexY = geometry.topEdge - heightKeyHeights * geometry.keyHeight
+        val spike = ArrayList<Pair<Float, Float>>()
+        val steps = 6
+        for (s in 1..steps) spike.add(Pair(base.x, base.y + (apexY - base.y) * s / steps)) // up
+        for (s in steps - 1 downTo 0) spike.add(Pair(base.x, base.y + (apexY - base.y) * s / steps)) // down
+        val merged = ArrayList<Pair<Float, Float>>(path.size + spike.size)
+        for (j in 0..i) merged.add(Pair(path[j].x, path[j].y))
+        merged.addAll(spike)
+        for (j in i + 1 until path.size) merged.add(Pair(path[j].x, path[j].y))
+        // recompute timestamps at constant speed
+        val out = ArrayList<GesturePoint>(merged.size)
+        var t = 0L
+        for ((j, p) in merged.withIndex()) {
+            if (j > 0) {
+                val prev = merged[j - 1]
+                val d = dist(prev.first, prev.second, p.first, p.second)
+                t += (d / speedPxPerMs).toLong().coerceAtLeast(1L)
+            }
+            out.add(GesturePoint(p.first, p.second, t))
+        }
+        return out
+    }
+
+    /** Sample index of [path] closest to the key of `word[letterIndex]` (searching forward). */
+    fun indexNearestToLetter(path: List<GesturePoint>, geometry: KeyboardGeometry, word: String, letterIndex: Int): Int {
+        val k = geometry.keyForWordChar(word[letterIndex].lowercaseChar()) ?: error("no key")
+        var bestIdx = 0
+        var bestDist = Float.MAX_VALUE
+        for ((i, p) in path.withIndex()) {
+            val d = dist(p.x, p.y, k.centerX, k.centerY)
+            if (d < bestDist) {
+                bestDist = d
+                bestIdx = i
+            }
+        }
+        return bestIdx
+    }
+
     // ---- internals ----
 
     /** Key-center anchors; double letters expand into a small loop around the key. */
@@ -113,7 +166,7 @@ object SyntheticPathGenerator {
         val anchors = ArrayList<Pair<Float, Float>>()
         var prev: Char? = null
         for (c in word.lowercase()) {
-            val k = geometry.key(c) ?: error("no key for '$c'")
+            val k = geometry.keyForWordChar(c) ?: error("no key for '$c'")
             if (c == prev) {
                 // loop gesture: small circle around the key center
                 val r = geometry.keyWidth * 0.25f

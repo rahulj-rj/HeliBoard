@@ -26,6 +26,13 @@ class KushlerConfig(
     val doubleMismatchPenalty: Float = 0.2f,
     /** Penalty when a word's double letter got no DOUBLE_LETTER gesture. */
     val missingDoublePenalty: Float = 0.35f,
+    /**
+     * Apostrophe waypoints (mapped to the period key) are mandatory detours: an
+     * unmatched one costs from a much smaller free radius and a higher weight, so
+     * "I'm" cannot beat "in" on a straight i→m path that never dips to the period key.
+     */
+    val apostropheFreeRadius: Float = 0.25f,
+    val apostropheOffPathWeight: Float = 1.2f,
 )
 
 class KushlerScorer(private val config: KushlerConfig = KushlerConfig()) : Scorer {
@@ -40,9 +47,14 @@ class KushlerScorer(private val config: KushlerConfig = KushlerConfig()) : Score
         // distance from each letter's key center to the drawn path, for off-path penalties
         val offPathCost = FloatArray(letters.size) { j ->
             val d = gesture.distanceToPath(letters[j].x, letters[j].y) / kw
-            val base = (d - config.offPathFreeRadius).coerceAtLeast(0f) * config.offPathWeight
-            // a double letter that no inflection claims also misses its loop gesture
-            if (letters[j].isDouble) base + config.missingDoublePenalty else base
+            if (letters[j].char == '\'' || letters[j].char == '’') {
+                // apostrophe waypoint (period key): mandatory detour, strict cost
+                (d - config.apostropheFreeRadius).coerceAtLeast(0f) * config.apostropheOffPathWeight
+            } else {
+                val base = (d - config.offPathFreeRadius).coerceAtLeast(0f) * config.offPathWeight
+                // a double letter that no inflection claims also misses its loop gesture
+                if (letters[j].isDouble) base + config.missingDoublePenalty else base
+            }
         }
 
         val m = inflections.size

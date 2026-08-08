@@ -114,7 +114,7 @@ class MainActivity : Activity() {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.append(" $label   ")
         }
-        sb.append("· raw path blue · resampled teal dots")
+        sb.append("· raw path blue · caps excursion pink · resampled teal dots")
         return TextView(this).apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
             setPadding(pad, 0, pad, pad / 2)

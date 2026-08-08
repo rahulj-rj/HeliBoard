@@ -17,6 +17,8 @@ public final class DebugSettings {
     public static final String PREF_KEY_DUMP_DICT_PREFIX = "dump_dictionaries";
 
     public static final String PREF_SHOW_SUGGESTION_INFOS = "show_suggestion_infos";
+    // scorer for the in-tree gesture decoder (lab flavor), see docs/gesture-decoder-spec.md
+    public static final String PREF_GESTURE_DECODER_SCORER = "gesture_decoder_scorer";
     private DebugSettings() {
         // This class is not publicly instantiable.
     }

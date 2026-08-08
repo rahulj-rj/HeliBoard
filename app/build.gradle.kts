@@ -67,9 +67,30 @@ android {
             }
             variant.outputs.forEach { output ->
                 if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                    output.outputFileName = "HeliBoard_${defaultConfig.versionName}-${variant.buildType}.apk"
+                    // keep the historical name for the normal flavor, distinct name for lab
+                    output.outputFileName = if (variant.flavorName == "lab")
+                        "HeliBoard_Lab_${defaultConfig.versionName}-${variant.buildType}.apk"
+                    else
+                        "HeliBoard_${defaultConfig.versionName}-${variant.buildType}.apk"
                 }
             }
+        }
+    }
+
+    // "normal" is the unchanged keyboard; "lab" installs side-by-side ("HeliBoard Lab",
+    // labels overridden in src/lab/res) and swipe-decodes with the in-tree :gesture decoder
+    // (see docs/gesture-decoder-spec.md) instead of the proprietary library.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("normal") {
+            dimension = "distribution"
+            isDefault = true
+            buildConfigField("boolean", "USE_OWN_GESTURE_DECODER", "false")
+        }
+        create("lab") {
+            dimension = "distribution"
+            applicationIdSuffix = ".lab"
+            buildConfigField("boolean", "USE_OWN_GESTURE_DECODER", "true")
         }
     }
 
@@ -125,6 +146,10 @@ android {
 }
 
 dependencies {
+    // own gesture decoder (only reachable when BuildConfig.USE_OWN_GESTURE_DECODER, i.e. lab flavor;
+    // R8 strips it from normal builds since all references are behind the constant-false flag)
+    implementation(project(":gesture"))
+
     // androidx
     implementation("androidx.core:core-ktx:1.17.0") // 1.18.0 requires minSdk 23
     implementation("androidx.recyclerview:recyclerview:1.4.0")

@@ -27,6 +27,9 @@ public final class GestureStrokeRecognitionPoints {
     // The height of extra area above the keyboard to draw gesture trails.
     // Proportional to the keyboard height.
     public static final float EXTRA_GESTURE_TRAIL_AREA_ABOVE_KEYBOARD_RATIO = 0.25f;
+    // Lab flavor (in-tree decoder): the caps-excursion gesture intentionally leaves the
+    // keyboard upwards, so allow a much taller valid area before batch input is cancelled.
+    private static final float EXTRA_GESTURE_AREA_ABOVE_KEYBOARD_RATIO_OWN_DECODER = 0.9f;
 
     private final int mPointerId;
     private final ResizableIntArray mEventTimes = new ResizableIntArray(
@@ -72,7 +75,10 @@ public final class GestureStrokeRecognitionPoints {
     // TODO: Make this package private
     public void setKeyboardGeometry(final int keyWidth, final int keyboardHeight) {
         mKeyWidth = keyWidth;
-        mMinYCoordinate = -(int)(keyboardHeight * EXTRA_GESTURE_TRAIL_AREA_ABOVE_KEYBOARD_RATIO);
+        final float extraAreaAboveKeyboardRatio = helium314.keyboard.latin.BuildConfig.USE_OWN_GESTURE_DECODER
+                ? EXTRA_GESTURE_AREA_ABOVE_KEYBOARD_RATIO_OWN_DECODER
+                : EXTRA_GESTURE_TRAIL_AREA_ABOVE_KEYBOARD_RATIO;
+        mMinYCoordinate = -(int)(keyboardHeight * extraAreaAboveKeyboardRatio);
         mMaxYCoordinate = keyboardHeight;
         // TODO: Find an appropriate base metric for these length. Maybe diagonal length of the key?
         mDetectFastMoveSpeedThreshold = (int)(

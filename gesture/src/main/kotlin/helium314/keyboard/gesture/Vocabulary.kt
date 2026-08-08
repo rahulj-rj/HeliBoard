@@ -27,8 +27,12 @@ class Vocabulary(entries: Iterable<Pair<String, Int>>) {
         var node = root
         for (c in word) node = node.children.getOrPut(c.lowercaseChar()) { Node() }
         if (node.word == null) size++
-        node.word = word.lowercase()
-        node.frequency = maxOf(node.frequency, frequency)
+        // keep the casing of the highest-frequency variant (trie keys are lowercased,
+        // stored words keep original casing so e.g. proper nouns display correctly)
+        if (frequency >= node.frequency) {
+            node.word = word
+            node.frequency = frequency
+        }
         if (frequency > maxFrequency) maxFrequency = frequency
     }
 

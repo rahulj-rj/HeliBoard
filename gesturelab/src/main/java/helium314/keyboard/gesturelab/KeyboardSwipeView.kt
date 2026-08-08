@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Path
 import android.view.MotionEvent
 import android.view.View
 import helium314.keyboard.gesture.GesturePoint
@@ -34,6 +33,10 @@ class KeyboardSwipeView(context: Context) : View(context) {
     private val keyBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFBBBBBB.toInt(); style = Paint.Style.STROKE; strokeWidth = 2f }
     private val keyLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF333333.toInt(); textAlign = Paint.Align.CENTER }
     private val rawPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x903F51B5.toInt(); style = Paint.Style.STROKE; strokeWidth = 6f }
+    // caps-excursion segments (above the keyboard's top edge) in a distinct color
+    private val excursionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xB0E91E63.toInt(); style = Paint.Style.STROKE; strokeWidth = 6f }
+    private val topEdgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x40000000; style = Paint.Style.STROKE; strokeWidth = 2f }
+    private val headroomLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x60000000; textAlign = Paint.Align.CENTER }
     private val resampledPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF009688.toInt(); style = Paint.Style.FILL }
     private val inflectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val inflectionRing = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; style = Paint.Style.STROKE; strokeWidth = 2f }
@@ -85,6 +88,11 @@ class KeyboardSwipeView(context: Context) : View(context) {
     }
 
     override fun onDraw(canvas: Canvas) {
+        // headroom boundary: excursions above this line capitalize letters
+        val topEdge = geometry.topEdge
+        canvas.drawLine(0f, topEdge, width.toFloat(), topEdge, topEdgePaint)
+        headroomLabel.textSize = geometry.keyHeight * 0.22f
+        canvas.drawText("swipe up here to capitalize", width / 2f, topEdge - geometry.keyHeight * 0.3f, headroomLabel)
         // keys
         for (k in geometry.keys) {
             val l = k.centerX - k.width / 2 + 2
@@ -96,13 +104,16 @@ class KeyboardSwipeView(context: Context) : View(context) {
             val textY = k.centerY - (keyLabel.descent() + keyLabel.ascent()) / 2
             canvas.drawText(k.char.uppercaseChar().toString(), k.centerX, textY, keyLabel)
         }
-        // in-progress or last raw path
+        // in-progress or last raw path; segments above the top edge (caps excursions)
+        // are drawn in a distinct color
         val rawToDraw = if (raw.isNotEmpty()) raw else overlayRaw
         if (rawToDraw.size > 1) {
-            val path = Path()
-            path.moveTo(rawToDraw[0].x, rawToDraw[0].y)
-            for (i in 1 until rawToDraw.size) path.lineTo(rawToDraw[i].x, rawToDraw[i].y)
-            canvas.drawPath(path, rawPaint)
+            for (i in 1 until rawToDraw.size) {
+                val a = rawToDraw[i - 1]
+                val b = rawToDraw[i]
+                val paint = if (a.y < topEdge || b.y < topEdge) excursionPaint else rawPaint
+                canvas.drawLine(a.x, a.y, b.x, b.y, paint)
+            }
         }
         // resampled path (dots) + inflection points
         overlay?.let { g ->

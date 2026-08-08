@@ -75,6 +75,27 @@ All three share the ranking formula and the frequency/user-history integration.
   ngram context integration is a later phase.
 - **Double letters**: a `DOUBLE_LETTER` inflection matches two consecutive
   identical letters (Swype's loop gesture).
+- **Caps excursion** (Swype-authentic capitalization): a mid-swipe detour ABOVE
+  the keyboard's top edge capitalizes the letter matched nearest BEFORE the
+  excursion; an excursion at/near the stroke start capitalizes the FIRST letter
+  (proper nouns). Multiple excursions = multiple capitals. Detection requires a
+  minimum height (~0.5 key heights above the top edge) so grazing the top row
+  never triggers. **Point-stripping requirement**: the excursion's points — the
+  above-keyboard run AND the near-vertical in-keyboard entry/exit stubs — must be
+  stripped BEFORE resampling/inflection detection/scoring (exit+reentry would
+  otherwise read as huge fake ANGLE inflections and corrupt both channels); the
+  return stub is trimmed until the path is back closest to the pre-excursion
+  anchor point. Only the junction arc positions survive, and capitalization is
+  applied per candidate after scoring (shared by all three scorers). IME side:
+  the valid-gesture-area margin above the keyboard must be widened (lab flavor)
+  or `PointerTracker` cancels batch input at −25 % of keyboard height.
+- **Apostrophes** (OG-Swype): apostrophes map to the PERIOD key — "I'm" is
+  swiped i → `.` → m. The period key lives in the decoder geometry as a special
+  non-letter key: it never matches word letters, but sokgraph building, corridor
+  pruning and all scorers treat the apostrophe waypoint like any other letter
+  position. A skipped apostrophe waypoint costs extra in the location channel so
+  a straight i→m never surfaces "I'm" above plain candidates. Hyphenated words
+  remain excluded from the gesture vocabulary for now.
 
 ## Architecture
 

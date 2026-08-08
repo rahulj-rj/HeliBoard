@@ -36,3 +36,4 @@ experience 93  technology 83  everything 114  themselves 75  university 81  pres
 hot 74  hit 73  bit 69  bat 57  top 89  tip 50  cat 59  cap 47  sat 43  sit 65
 red 80  rod 34  rid 33  pen 41  pin 39  pan 37  nor 32  wore 30  hear 95  heat 53
 man 146  say 128  water 143  call 142  number 144  oil 45  write 145  word 150
+I'm 180  don't 190  can't 170  it's 200  won't 150  isn't 140  didn't 145  you're 160  we're 130  that's 175

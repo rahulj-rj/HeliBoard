@@ -18,6 +18,7 @@ import helium314.keyboard.latin.define.DebugFlags
 import helium314.keyboard.latin.define.DecoderSpecificConstants.SHOULD_AUTO_CORRECT_USING_NON_WHITE_LISTED_SUGGESTION
 import helium314.keyboard.latin.define.DecoderSpecificConstants.SHOULD_REMOVE_PREVIOUSLY_REJECTED_SUGGESTION
 import helium314.keyboard.latin.dictionary.Dictionary
+import helium314.keyboard.latin.gesture.OwnGestureDecoder
 import helium314.keyboard.latin.settings.Settings
 import helium314.keyboard.latin.settings.SettingsValuesForSuggestion
 import helium314.keyboard.latin.suggestions.SuggestionStripView
@@ -268,7 +269,12 @@ class Suggest(private val mDictionaryFacilitator: DictionaryFacilitator) {
         settingsValuesForSuggestion: SettingsValuesForSuggestion,
         inputStyle: Int, sequenceNumber: Int
     ): SuggestedWords {
-        val suggestionResults = mDictionaryFacilitator.getSuggestionResults(
+        // lab flavor: swipe decoding via the in-tree decoder instead of the proprietary lib
+        // (constant-false flag in the normal flavor, so R8 keeps the native path only)
+        val suggestionResults = if (BuildConfig.USE_OWN_GESTURE_DECODER)
+            OwnGestureDecoder.getSuggestionResults(wordComposer.composedDataSnapshot, keyboard,
+                mDictionaryFacilitator.mainLocale, Settings.getValues().mGestureDecoderScorer)
+        else mDictionaryFacilitator.getSuggestionResults(
             wordComposer.composedDataSnapshot, ngramContext, keyboard,
             settingsValuesForSuggestion, SESSION_ID_GESTURE, inputStyle
         )
@@ -336,7 +342,8 @@ class Suggest(private val mDictionaryFacilitator: DictionaryFacilitator) {
             suggestionsContainer, getNextWordSuggestions(ngramContext, keyboard, inputStyle, settingsValuesForSuggestion), rejected
         )
         val suggestionsList = if (SuggestionStripView.DEBUG_SUGGESTIONS && suggestionsContainer.isNotEmpty()) {
-            getSuggestionsInfoListWithDebugInfo(suggestionResults.first().mWord, suggestionsContainer)
+            // firstOrNull: own-decoder results can be empty while its vocabulary is still building
+            getSuggestionsInfoListWithDebugInfo(suggestionResults.firstOrNull()?.mWord ?: "", suggestionsContainer)
         } else {
             suggestionsContainer
         }

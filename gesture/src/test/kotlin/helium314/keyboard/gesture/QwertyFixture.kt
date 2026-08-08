@@ -28,6 +28,9 @@ object QwertyFixture {
                 )
             }
         }
+        // period key on the bottom row (right of the space bar, roughly under 'm'):
+        // participates in gestures only as the apostrophe waypoint
+        keys.add(KeyInfo(KeyboardGeometry.PERIOD_KEY_CHAR, 8.5f * KEY_WIDTH, 3.5f * KEY_HEIGHT, KEY_WIDTH, KEY_HEIGHT))
         KeyboardGeometry(keys)
     }
 }

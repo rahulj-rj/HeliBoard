@@ -28,7 +28,20 @@ class KeyboardGeometry(val keys: List<KeyInfo>) {
     val keyWidth: Float = if (keys.isEmpty()) 1f else keys.map { it.width }.average().toFloat()
     val keyHeight: Float = if (keys.isEmpty()) 1f else keys.map { it.height }.average().toFloat()
 
+    /** y of the top edge of the topmost key — the boundary for caps-excursion detection. */
+    val topEdge: Float = if (keys.isEmpty()) 0f else keys.minOf { it.centerY - it.height / 2 }
+
     fun key(c: Char): KeyInfo? = byChar[c]
+
+    /**
+     * Key a WORD character is gestured on. Letters map to their own key; apostrophes map
+     * to the PERIOD key (OG-Swype behavior: "I'm" is swiped i → '.' → m). Returns null if
+     * the keyboard has no key for the character (word not gesture-decodable here).
+     */
+    fun keyForWordChar(c: Char): KeyInfo? = when (c) {
+        '\'', '’' -> byChar[PERIOD_KEY_CHAR]
+        else -> byChar[c.lowercaseChar()]
+    }
 
     fun nearestKey(x: Float, y: Float): KeyInfo? = keys.minByOrNull { distSq(it, x, y) }
 
@@ -42,6 +55,11 @@ class KeyboardGeometry(val keys: List<KeyInfo>) {
         val dx = k.centerX - x
         val dy = k.centerY - y
         return dx * dx + dy * dy
+    }
+
+    companion object {
+        /** The special non-letter key that may be part of word gestures (apostrophe mapping). */
+        const val PERIOD_KEY_CHAR = '.'
     }
 }
 
@@ -80,6 +98,13 @@ class PreprocessedGesture(
     val inflections: List<InflectionPoint>,
     val pathLength: Float,
     val meanSpeed: Float, // px per ms; 0 if no time data
+    /**
+     * Arc positions (on THIS preprocessed path) where a caps excursion left the keyboard:
+     * the letter matched nearest before such a position gets capitalized. Excursion points
+     * themselves were stripped before resampling/inflection detection (they would otherwise
+     * corrupt both scoring channels), so these junctions are the only trace left.
+     */
+    val excursionArcs: List<Float> = emptyList(),
 ) {
     /** Cumulative arc length up to each point (size == points.size). */
     val cumulativeLength: FloatArray = FloatArray(points.size).also { cum ->
@@ -181,7 +206,7 @@ class Sokgraph(val word: String, val points: List<SokPoint>, val length: Float) 
 data class SokPoint(val char: Char, val x: Float, val y: Float, val isDouble: Boolean)
 
 object SokgraphBuilder {
-    /** Returns null if any letter of [word] has no key in [geometry]. */
+    /** Returns null if any character of [word] has no key in [geometry] (apostrophes map to the period key). */
     fun build(word: String, geometry: KeyboardGeometry): Sokgraph? {
         if (word.isEmpty()) return null
         val pts = ArrayList<SokPoint>(word.length)
@@ -193,7 +218,7 @@ object SokgraphBuilder {
                 val last = pts.removeAt(pts.size - 1)
                 pts.add(last.copy(isDouble = true))
             } else {
-                val k = geometry.key(lc) ?: return null
+                val k = geometry.keyForWordChar(lc) ?: return null
                 pts.add(SokPoint(lc, k.centerX, k.centerY, false))
             }
             prev = lc

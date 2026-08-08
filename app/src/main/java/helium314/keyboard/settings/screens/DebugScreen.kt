@@ -19,6 +19,7 @@ import helium314.keyboard.latin.settings.DebugSettings
 import helium314.keyboard.latin.settings.Defaults
 import helium314.keyboard.latin.utils.prefs
 import helium314.keyboard.settings.Setting
+import helium314.keyboard.settings.preferences.ListPreference
 import helium314.keyboard.settings.preferences.Preference
 import helium314.keyboard.settings.SearchSettingsScreen
 import helium314.keyboard.settings.preferences.SwitchPreference
@@ -40,6 +41,7 @@ fun DebugScreen(
         DebugSettings.PREF_SHOW_SUGGESTION_INFOS,
         DebugSettings.PREF_FORCE_NON_DISTINCT_MULTITOUCH,
         DebugSettings.PREF_SLIDING_KEY_INPUT_PREVIEW,
+        if (BuildConfig.USE_OWN_GESTURE_DECODER) DebugSettings.PREF_GESTURE_DECODER_SCORER else null,
         R.string.prefs_dump_dynamic_dicts
     ) + DictionaryFacilitator.DYNAMIC_DICTIONARY_TYPES.map { DebugSettings.PREF_KEY_DUMP_DICT_PREFIX + it }
     SearchSettingsScreen(
@@ -93,6 +95,11 @@ private fun createDebugSettings(context: Context) = listOf(
     },
     Setting(context, DebugSettings.PREF_SLIDING_KEY_INPUT_PREVIEW, R.string.sliding_key_input_preview, R.string.sliding_key_input_preview_summary) { def ->
         SwitchPreference(def, Defaults.PREF_SLIDING_KEY_INPUT_PREVIEW)
+    },
+    Setting(context, DebugSettings.PREF_GESTURE_DECODER_SCORER, R.string.prefs_gesture_decoder_scorer, R.string.prefs_gesture_decoder_scorer_summary) { setting ->
+        // only listed in the lab flavor (see items in DebugScreen)
+        val items = listOf("Hybrid" to "hybrid", "Kushler (patent)" to "kushler", "SHARK²" to "shark2")
+        ListPreference(setting, items, Defaults.PREF_GESTURE_DECODER_SCORER)
     },
 ) + DictionaryFacilitator.DYNAMIC_DICTIONARY_TYPES.map { type ->
     Setting(context, DebugSettings.PREF_KEY_DUMP_DICT_PREFIX + type, R.string.button_default) {

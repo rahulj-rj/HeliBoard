@@ -30,6 +30,12 @@ class PreprocessorConfig(
     val loopMaxArcKeyWidths: Float = 3.0f,
     /** How strongly local speed shifts the angle threshold (faster ⇒ lower threshold, more tolerant). */
     val speedAngleAdaptation: Float = 0.25f,
+    /**
+     * Caps excursion: a run of points above the keyboard's top edge only counts (and is
+     * only stripped) if it rises at least this many key heights ABOVE the top edge —
+     * grazing the top row must not trigger capitalization.
+     */
+    val excursionMinHeightKeyHeights: Float = 0.5f,
 )
 
 /**
@@ -42,14 +48,103 @@ class GesturePreprocessor(private val config: PreprocessorConfig = PreprocessorC
 
     fun preprocess(raw: List<GesturePoint>, geometry: KeyboardGeometry): PreprocessedGesture {
         if (raw.isEmpty()) return PreprocessedGesture(emptyList(), emptyList(), 0f, 0f)
-        val smoothed = smooth(raw)
+        // strip caps-excursion points FIRST: the vertical detour must never reach
+        // resampling/inflection detection/scoring (exit+reentry would read as two
+        // huge fake corners and corrupt both channels)
+        val (kept, rawExcursionArcs) = stripExcursions(raw, geometry)
+        if (kept.size < 2) return PreprocessedGesture(emptyList(), emptyList(), 0f, 0f)
+        val keptLength = polylineLength(kept)
+        val smoothed = smooth(kept)
         val spacing = geometry.keyWidth * config.resampleSpacingKeyWidths
         val resampled = resample(smoothed, spacing)
         val pathLength = polylineLength(resampled)
         val duration = (resampled.last().t - resampled.first().t).coerceAtLeast(1L)
         val meanSpeed = pathLength / duration
         val inflections = detectInflections(resampled, geometry, meanSpeed)
-        return PreprocessedGesture(resampled, inflections, pathLength, meanSpeed)
+        // scale excursion arc positions from the raw kept polyline onto the
+        // (slightly shorter, smoothed) resampled path
+        val scale = if (keptLength <= 0f) 0f else pathLength / keptLength
+        val excursionArcs = rawExcursionArcs.map { it * scale }
+        return PreprocessedGesture(resampled, inflections, pathLength, meanSpeed, excursionArcs)
+    }
+
+    /**
+     * Caps-excursion detection (Swype-authentic capitalization gesture): finds contiguous
+     * runs of points above the keyboard's top edge. Runs rising at least
+     * [PreprocessorConfig.excursionMinHeightKeyHeights] above the edge are STRIPPED
+     * (exit and reentry joined) and their junction arc position recorded; shallower
+     * grazes are kept as normal path points and trigger nothing.
+     *
+     * Stripping also swallows the near-vertical in-keyboard stubs adjacent to the run
+     * (the finger has to cross the upper rows to leave the keyboard) — otherwise the
+     * detour would still read as a fake cusp and drag crossed keys into the corridor.
+     */
+    private fun stripExcursions(raw: List<GesturePoint>, geometry: KeyboardGeometry): Pair<List<GesturePoint>, List<Float>> {
+        val topEdge = geometry.topEdge
+        if (raw.none { it.y < topEdge }) return Pair(raw, emptyList())
+        val trigger = topEdge - config.excursionMinHeightKeyHeights * geometry.keyHeight
+        val xTolerance = 0.6f * geometry.keyWidth
+        val n = raw.size
+        val strip = BooleanArray(n)
+        val junctionStarts = HashSet<Int>() // first stripped index of each qualified excursion
+
+        val stubDepthLimit = topEdge + 1.5f * geometry.keyHeight
+        var i = 0
+        while (i < n) {
+            if (raw[i].y >= topEdge) { i++; continue }
+            // contiguous run above the top edge
+            var j = i
+            var minY = raw[i].y
+            while (j + 1 < n && raw[j + 1].y < topEdge) {
+                j++
+                if (raw[j].y < minY) minY = raw[j].y
+            }
+            if (minY < trigger) {
+                // expand backwards over the near-vertical approach stub (still inside the keyboard)
+                var a = i
+                while (a > 0 && !strip[a - 1] && raw[a - 1].y >= raw[a].y
+                    && raw[a - 1].y < stubDepthLimit
+                    && Geom.absDiff(raw[a - 1].x, raw[i].x) <= xTolerance) a--
+                // The excursion is an out-and-back: the return retraces the approach. Anchor on
+                // the point just before the approach stub (or the stroke start if the excursion
+                // IS the start) and strip the return until the path is back closest to it —
+                // self-calibrating, so a steep first stroke leg is never swallowed.
+                val anchor = raw[if (a > 0) a - 1 else 0]
+                var b = j
+                if (j < n - 1) {
+                    var bestIdx = j + 1
+                    var bestDist = Float.MAX_VALUE
+                    var arcAfter = 0f
+                    var k = j + 1
+                    while (k < n && arcAfter <= 3f * geometry.keyHeight) {
+                        val d = PreprocessedGesture.dist(raw[k], anchor)
+                        if (d < bestDist) {
+                            bestDist = d
+                            bestIdx = k
+                        }
+                        if (k + 1 < n) arcAfter += PreprocessedGesture.dist(raw[k], raw[k + 1])
+                        k++
+                    }
+                    b = bestIdx - 1 // keep the closest-to-anchor point itself
+                }
+                for (m in a..b) strip[m] = true
+                junctionStarts.add(a)
+            }
+            // else: graze — keep the points, no excursion
+            i = j + 1
+        }
+        if (junctionStarts.isEmpty()) return Pair(raw, emptyList())
+
+        val kept = ArrayList<GesturePoint>(n)
+        val arcs = ArrayList<Float>()
+        var arc = 0f
+        for (k in 0 until n) {
+            if (k in junctionStarts) arcs.add(arc)
+            if (strip[k]) continue
+            if (kept.isNotEmpty()) arc += PreprocessedGesture.dist(kept.last(), raw[k])
+            kept.add(raw[k])
+        }
+        return Pair(kept, arcs)
     }
 
     // ---- smoothing ----

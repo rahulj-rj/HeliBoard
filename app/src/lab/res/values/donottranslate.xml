@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- lab flavor overrides: distinct app + IME label so both keyboards are
+     distinguishable in the launcher and in Android's IME picker -->
+<resources>
+    <string name="english_ime_name" translatable="false">HeliBoard Lab</string>
+</resources>
