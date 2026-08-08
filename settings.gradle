@@ -2,4 +2,6 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 include ':app'
+include ':gesture'
+include ':gesturelab'
 include ':tools:make-emoji-keys'

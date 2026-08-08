@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: GPL-3.0-only
+package helium314.keyboard.gesture
+
+/**
+ * Small hardcoded test vocabulary: ~260 common English words with plausible
+ * Zipf-ish frequencies on a 1..255 scale (like the binary-dictionary range).
+ * Includes short words, double-letter words, long words, and adjacent-key
+ * confusion sets so the harness exercises the tricky cases.
+ */
+object TestVocabulary {
+
+    private val RAW = """
+        the 255  of 250  and 249  a 248  to 247  in 245  i 244  is 243  it 240  you 239
+        that 238  he 236  was 235  for 234  on 233  are 232  as 231  with 230  his 229  they 228
+        at 227  be 226  this 225  have 224  from 223  or 222  one 221  had 220  by 219  but 218
+        not 217  what 216  all 215  were 214  we 213  when 212  your 211  can 210  said 209  there 208
+        an 207  which 206  she 205  do 204  how 203  their 202  if 201  will 200  up 199  about 198
+        out 197  then 196  them 195  so 194  some 193  her 192  would 191  like 190  well 189  him 188
+        into 187  time 186  has 185  go 184  no 183  my 182  more 181  than 180  use 179  each 178
+        other 177  many 176  these 175  make 174  into 173  look 172  two 171  see 170  way 169  could 168
+        people 167  been 166  first 165  who 164  its 163  now 162  find 161  long 160  down 159  day 158
+        three 157  did 156  get 155  come 154  made 153  may 152  part 151  over 150  new 149  sound 148
+        take 147  only 146  little 145  work 144  know 143  place 142  year 141  live 140  me 139  back 138
+        give 137  most 136  very 135  after 134  thing 133  our 132  just 131  name 130  good 129  say 128
+        think 127  great 126  where 125  help 124  through 123  much 122  before 121  line 120  right 119  too 118
+        mean 117  old 116  any 115  same 114  tell 113  boy 112  follow 111  came 110  want 109  show 108
+        also 107  around 106  form 105  small 104  set 103  put 102  end 101  does 100  another 99  large 98
+        must 97  big 96  even 95  such 94  because 93  turn 92  here 91  why 90  ask 89  went 88
+        men 87  read 86  need 85  land 84  home 83  hand 82  picture 81  again 80  off 79  play 78
+        spell 77  air 76  away 75  animal 74  house 73  point 72  page 71  letter 70  mother 69  answer 68
+        found 67  study 66  still 65  learn 64  should 63  world 62  high 61  every 60  near 59  add 58
+        food 57  between 56  own 55  below 54  country 53  plant 52  last 51  school 50  father 49  keep 48
+        tree 47  never 46  start 45  city 44  earth 43  eye 42  light 41  thought 40  head 39  under 38
+        story 37  saw 36  left 35  few 34  while 33  along 32  might 31  close 30  something 148  seem 29
+        next 28  hard 27  open 26  example 25  begin 24  life 23  always 22  those 21  both 20  paper 19
+        together 118  got 18  group 17  often 16  run 15  important 121  until 14  children 127  side 13  feet 12
+        car 125  mile 11  night 10  walk 9  white 8  sea 7  began 6  grow 5  took 4  river 3
+        hello 100  book 108  soon 96  room 104  seen 92  free 88  feel 90  week 86  door 72  floor 64
+        poor 60  ball 56  loop 40  green 78  sleep 74  street 70  glass 52  class 68  press 48  cross 44
+        dress 42  miss 62  pass 66  full 76  pull 38  fall 58  egg 36  happy 82  sorry 71  better 84
+        coffee 54  summer 63  really 94  pretty 61  less 67  address 46  information 111  government 109  development 82  understand 107
+        keyboard 55  question 119  probably 103  beautiful 87  computer 116  remember 117  business 113  national 101  community 86  education 89
+        experience 93  technology 83  everything 114  themselves 75  university 81  president 79  sometimes 98  interesting 85  language 77  different 129
+        hot 74  hit 73  bit 69  bat 57  top 89  tip 50  cat 59  cap 47  sat 43  sit 65
+        red 80  rod 34  rid 33  pen 41  pin 39  pan 37  nor 32  wore 30  hear 95  heat 53
+        man 146  say 128  water 143  call 142  number 144  oil 45  write 145  word 150
+    """.trimIndent()
+
+    /** (word, frequency) pairs; later duplicates are merged by [Vocabulary] (max wins). */
+    val entries: List<Pair<String, Int>> by lazy {
+        val tokens = RAW.split(Regex("\\s+")).filter { it.isNotBlank() }
+        val list = ArrayList<Pair<String, Int>>(tokens.size / 2)
+        var i = 0
+        while (i + 1 < tokens.size) {
+            list.add(Pair(tokens[i], tokens[i + 1].toInt()))
+            i += 2
+        }
+        list
+    }
+
+    val vocabulary: Vocabulary by lazy { Vocabulary(entries) }
+}

@@ -1,0 +1,24 @@
+// Gesture decoder core (see docs/gesture-decoder-spec.md).
+// Plain Kotlin JVM module — no Android dependencies — so the decoder and its
+// accuracy harness run as fast JVM unit tests (./gradlew :gesture:test).
+apply plugin: 'java'
+apply plugin: 'kotlin'
+
+// JVM 17 to match the Android app modules that consume this library
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.3.20"
+
+    testImplementation "org.jetbrains.kotlin:kotlin-test:2.3.20"
+    testImplementation "junit:junit:4.13.2"
+}
