@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package helium314.keyboard.settings.preferences
 
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.provider.UserDictionary
 import android.os.Looper
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -151,6 +154,10 @@ private fun backupLauncher(onError: (String) -> Unit): ManagedActivityResultLaun
                     zipStream.putNextEntry(ZipEntry(PROTECTED_PREFS_FILE_NAME))
                     settingsToJsonStream(ctx.protectedPrefs().all, zipStream)
                     zipStream.closeEntry()
+                    // fork: include the system personal dictionary (words added via "edit personal dictionary")
+                    zipStream.putNextEntry(ZipEntry(PERSONAL_DICT_FILE_NAME))
+                    zipStream.write(Json.encodeToString(readPersonalDictionary(ctx)).toByteArray())
+                    zipStream.closeEntry()
                     zipStream.close()
                 }
             } catch (t: Throwable) {
@@ -203,6 +210,13 @@ private fun restoreLauncher(onError: (String) -> Unit): ManagedActivityResultLau
                                 val protectedPrefs = ctx.protectedPrefs()
                                 protectedPrefs.edit { clear() }
                                 readJsonLinesToSettings(prefLines, protectedPrefs)
+                            } else if (entry.name == PERSONAL_DICT_FILE_NAME) {
+                                // fork: merge backed-up personal dictionary into the system one (never fail the whole restore over it)
+                                try {
+                                    restorePersonalDictionary(ctx, String(zip.readBytes()))
+                                } catch (t: Throwable) {
+                                    Log.w("AdvancedScreen", "error restoring personal dictionary", t)
+                                }
                             }
                             zip.closeEntry()
                             entry = zip.nextEntry
@@ -279,8 +293,51 @@ private fun readJsonLinesToSettings(list: List<String>, prefs: SharedPreferences
     }
 }
 
+// fork: personal dictionary backup — each entry is a map with "word", "frequency", and optionally "locale" / "shortcut"
+private fun readPersonalDictionary(ctx: Context): List<Map<String, String>> {
+    val projection = arrayOf(UserDictionary.Words.WORD, UserDictionary.Words.FREQUENCY,
+        UserDictionary.Words.LOCALE, UserDictionary.Words.SHORTCUT)
+    val result = mutableListOf<Map<String, String>>()
+    ctx.contentResolver.query(UserDictionary.Words.CONTENT_URI, projection, null, null, null)?.use { cursor ->
+        while (cursor.moveToNext()) {
+            val word = cursor.getString(0) ?: continue
+            val entry = mutableMapOf("word" to word, "frequency" to (cursor.getInt(1)).toString())
+            cursor.getString(2)?.let { entry["locale"] = it }
+            cursor.getString(3)?.let { entry["shortcut"] = it }
+            result.add(entry)
+        }
+    }
+    return result
+}
+
+// fork: merge entries into the system personal dictionary, skipping words that already exist for the same locale
+private fun restorePersonalDictionary(ctx: Context, json: String) {
+    val entries = Json.decodeFromString<List<Map<String, String>>>(json)
+    if (entries.isEmpty()) return
+    val existing = mutableSetOf<String>()
+    ctx.contentResolver.query(UserDictionary.Words.CONTENT_URI,
+        arrayOf(UserDictionary.Words.WORD, UserDictionary.Words.LOCALE), null, null, null)?.use { cursor ->
+        while (cursor.moveToNext()) {
+            existing.add("${cursor.getString(0)}|${cursor.getString(1) ?: ""}")
+        }
+    }
+    entries.forEach { entry ->
+        val word = entry["word"] ?: return@forEach
+        if ("$word|${entry["locale"] ?: ""}" in existing) return@forEach
+        val values = ContentValues().apply {
+            put(UserDictionary.Words.WORD, word)
+            put(UserDictionary.Words.FREQUENCY, entry["frequency"]?.toIntOrNull() ?: 250)
+            put(UserDictionary.Words.APP_ID, 0)
+            entry["locale"]?.let { put(UserDictionary.Words.LOCALE, it) }
+            entry["shortcut"]?.let { put(UserDictionary.Words.SHORTCUT, it) }
+        }
+        ctx.contentResolver.insert(UserDictionary.Words.CONTENT_URI, values)
+    }
+}
+
 private const val PREFS_FILE_NAME = "preferences.json"
 private const val PROTECTED_PREFS_FILE_NAME = "protected_preferences.json"
+private const val PERSONAL_DICT_FILE_NAME = "personal_dictionary.json"
 
 private val backupFilePatterns by lazy { listOf(
     "blacklists${File.separator}.*\\.txt".toRegex(),
