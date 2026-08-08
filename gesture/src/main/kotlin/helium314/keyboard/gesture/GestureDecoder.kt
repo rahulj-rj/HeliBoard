@@ -171,15 +171,17 @@ class GestureDecoder(
                     out.add(Candidate(sok, node.frequency, arcStack.toFloatArray()))
                 }
             }
-            for ((childChar, childNode) in node.children) {
-                walk(childNode, childChar, newArc, depth + 1)
+            for (i in 0 until node.childCount) {
+                walk(node.childAt(i), node.childCharAt(i), newArc, depth + 1)
             }
             arcStack.removeAt(arcStack.size - 1)
         }
 
-        for ((c, childNode) in vocabulary.root.children) {
+        val root = vocabulary.root
+        for (i in 0 until root.childCount) {
+            val c = root.childCharAt(i)
             val key = geometry.keyForWordChar(c) ?: continue
-            if (key.char in startChars) walk(childNode, c, 0f, 1)
+            if (key.char in startChars) walk(root.childAt(i), c, 0f, 1)
         }
         return out
     }

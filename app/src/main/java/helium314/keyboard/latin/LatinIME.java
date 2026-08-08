@@ -677,6 +677,11 @@ public class LatinIME extends InputMethodService implements
         mDictionaryFacilitator.resetDictionaries(this, mDictionaryFacilitator.getMainLocale(),
                 settingsValues.mUseContactsDictionary, settingsValues.mUseAppsDictionary,
                 settingsValues.mUsePersonalizedDicts, true, "", this);
+        if (BuildConfig.USE_OWN_GESTURE_DECODER) {
+            // dictionaries changed: reload the gesture decoder's vocabulary (memory only —
+            // the disk cache self-detects a changed main dict and keeps serving meanwhile)
+            helium314.keyboard.latin.gesture.GestureDecoderVocabulary.INSTANCE.clear();
+        }
         mKeyboardSwitcher.setThemeNeedsReload(); // necessary for emoji search
         EmojiPalettesView.closeDictionaryFacilitator();
         EmojiSearchActivity.Companion.closeDictionaryFacilitator();
@@ -851,6 +856,15 @@ public class LatinIME extends InputMethodService implements
         setGestureDataGatheringMode(editorInfo);
 
         mDictionaryFacilitator.onStartInput();
+        if (BuildConfig.USE_OWN_GESTURE_DECODER) {
+            // warm the gesture vocabulary when the keyboard opens instead of on the first
+            // swipe, so the disk-cache load (or the one-time build) overlaps with typing
+            final SettingsValues sv = mSettings.getCurrent();
+            final Locale mainLocale = mDictionaryFacilitator.getMainLocale();
+            if (sv != null && sv.mGestureInputEnabled && mainLocale != null) {
+                helium314.keyboard.latin.gesture.GestureDecoderVocabulary.INSTANCE.getOrBuildAsync(mainLocale);
+            }
+        }
         // Switch to the null consumer to handle cases leading to early exit below, for which we
         // also wouldn't be consuming gesture data.
         mGestureConsumer = GestureConsumer.NULL_GESTURE_CONSUMER;
