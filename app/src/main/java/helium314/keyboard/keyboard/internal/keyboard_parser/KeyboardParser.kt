@@ -290,11 +290,25 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
     }
 
     private fun addSymbolPopupKeys(baseKeys: MutableList<MutableList<KeyData>>) {
+        if (params.mId.mNumberRowEnabled && params.mId.mSubtype.mainLayoutName == "qwerty") {
+            // physical-keyboard-inspired popups: shift pairs share a key, arithmetic signs adjacent,
+            //  nothing duplicating the !@#$%^&*() already provided by the number row popups
+            qwertySymbolOverlay.forEachIndexed { i, row ->
+                val baseRow = baseKeys.getOrNull(i) ?: return@forEachIndexed
+                row.forEachIndexed { j, popups ->
+                    baseRow.getOrNull(j)?.let { baseRow[j] = it.copy(newPopup = SimplePopups(popups).merge(it.popup)) }
+                }
+            }
+            return
+        }
         val layout = LayoutParser.parseLayout(LayoutType.SYMBOLS, params, context)
+        // when the number row is shown its popups already provide !@#$%^&*(),
+        //  so replace those on letter keys with symbols not otherwise reachable by long-press
+        val replacements = if (params.mId.mNumberRowEnabled) numberRowPopupDuplicateReplacements else emptyMap()
         layout.forEachIndexed { i, row ->
             val baseRow = baseKeys.getOrNull(i) ?: return@forEachIndexed
             row.forEachIndexed { j, key ->
-                baseRow.getOrNull(j)?.popup?.symbol = key.label
+                baseRow.getOrNull(j)?.popup?.symbol = replacements[key.label] ?: key.label
             }
         }
     }
@@ -336,6 +350,22 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
 
     companion object {
         private const val TAG = "KeyboardParser"
+
+        private val numberRowPopupDuplicateReplacements = mapOf(
+            "%" to "`", "@" to "€", "#" to "§", "$" to "₹", "&" to "—",
+            "(" to "«", ")" to "»", "*" to "×", "!" to "÷"
+        )
+
+        // per-key popup lists for qwerty with number row: every US-qwerty symbol (shifted included)
+        //  holds a primary slot: {}[]|\ on tyuiop, ;:'" on hjkl, <>,.?/ on xcvbnm,
+        //  arithmetic block on erdfg; non-keyboard symbols only on spare keys or as secondaries
+        private val qwertySymbolOverlay = listOf(
+            listOf(listOf("~"), listOf("`"), listOf("-", "—"), listOf("=", "±"), listOf("{"),
+                listOf("}"), listOf("["), listOf("]"), listOf("|"), listOf("\\")),
+            listOf(listOf("€"), listOf("₹"), listOf("_"), listOf("+"), listOf("×", "÷"),
+                listOf(";"), listOf(":"), listOf("'"), listOf("\"")),
+            listOf(listOf("…", "°"), listOf("<"), listOf(">"), listOf(","), listOf("."), listOf("?"), listOf("/"))
+        )
     }
 
 }
