@@ -112,6 +112,8 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
 
         val allFunctionalKeys = LayoutParser.parseLayout(LayoutType.FUNCTIONAL, params, context)
         adjustBottomFunctionalRowAndBaseKeys(allFunctionalKeys, baseKeys)
+        if (qwertyOverlayApplies())
+            addPeriodKeyApostrophePopup(allFunctionalKeys)
 
         if (allFunctionalKeys.none { it.singleOrNull()?.isKeyPlaceholder() == true })
             // add a placeholder so splitAt does what we really want
@@ -289,8 +291,30 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
         }
     }
 
+    private fun qwertyOverlayApplies() =
+        params.mId.mNumberRowEnabled && params.mId.mSubtype.mainLayoutName == "qwerty"
+
+    /**
+     * ' is the period key's primary long-press popup (shown as hint) on the alphabet keyboard.
+     * The default punctuation popups stay behind it; in URL/email fields the TLD popups (.com etc.) are kept as-is.
+     */
+    private fun addPeriodKeyApostrophePopup(allFunctionalKeys: MutableList<MutableList<KeyData>>) {
+        if (!params.mId.isAlphabetKeyboard || params.mId.mMode == KeyboardId.MODE_URL || params.mId.mMode == KeyboardId.MODE_EMAIL)
+            return
+        val bottomRow = allFunctionalKeys.lastOrNull() ?: return
+        val i = bottomRow.indexOfFirst { it.label == KeyLabel.PERIOD || it.groupId == KeyData.GROUP_PERIOD }
+        if (i < 0) return
+        val period = bottomRow[i]
+        val punctuation = params.mLocaleKeyboardInfos.getPopupKeys("punctuation").orEmpty().filter { it != "'" }
+        bottomRow[i] = period.copy(
+            newPopup = SimplePopups(listOf("'") + punctuation),
+            newGroupId = KeyData.GROUP_NO_DEFAULT_POPUP,
+            newLabelFlags = period.labelFlags and Key.LABEL_FLAGS_DISABLE_HINT_LABEL.inv()
+        )
+    }
+
     private fun addSymbolPopupKeys(baseKeys: MutableList<MutableList<KeyData>>) {
-        if (params.mId.mNumberRowEnabled && params.mId.mSubtype.mainLayoutName == "qwerty") {
+        if (qwertyOverlayApplies()) {
             // physical-keyboard-inspired popups: shift pairs share a key, arithmetic signs adjacent,
             //  nothing duplicating the !@#$%^&*() already provided by the number row popups
             qwertySymbolOverlay.forEachIndexed { i, row ->
@@ -357,14 +381,14 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
         )
 
         // per-key popup lists for qwerty with number row: every US-qwerty symbol (shifted included)
-        //  user-specified map: ~₹€%{}[]|\ on qwertyuiop, @+-_*'":; on asdfghjkl, ×÷<>=!? on zxcvbnm;
-        //  ` behind ~ on q; € ₹ also on the number row's 1 and 2 popups
+        //  user-specified map: ~₹€%{}[]|\ on qwertyuiop, @+-_*=":; on asdfghjkl, ×÷<>,!? on zxcvbnm;
+        //  ` behind ~ on q; € ₹ also on the number row's 1 and 2 popups; ' is the period key's primary popup
         private val qwertySymbolOverlay = listOf(
             listOf(listOf("~", "`"), listOf("₹"), listOf("€"), listOf("%"), listOf("{"),
                 listOf("}"), listOf("["), listOf("]"), listOf("|"), listOf("\\")),
             listOf(listOf("@"), listOf("+"), listOf("-"), listOf("_"), listOf("*"),
-                listOf("'"), listOf("\""), listOf(":"), listOf(";")),
-            listOf(listOf("×"), listOf("÷"), listOf("<"), listOf(">"), listOf("="), listOf("!"), listOf("?"))
+                listOf("="), listOf("\""), listOf(":"), listOf(";")),
+            listOf(listOf("×"), listOf("÷"), listOf("<"), listOf(">"), listOf(","), listOf("!"), listOf("?"))
         )
     }
 
