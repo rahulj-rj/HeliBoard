@@ -53,7 +53,8 @@ object GestureCorpusRecorder {
         val xs = pointers.xCoordinates.copyOf(size)
         val ys = pointers.yCoordinates.copyOf(size)
         val ts = pointers.times.copyOf(size)
-        val cands = candidates.take(MAX_CANDIDATES).map { it.mWord to it.mScore }
+        // the native decoder reports the same word once per dictionary it was found in; keep the best-ranked
+        val cands = candidates.distinctBy { it.mWord }.take(MAX_CANDIDATES).map { it.mWord to it.mScore }
         val keys = letterKeys(keyboard)
         val kbW = keyboard.mOccupiedWidth
         val kbH = keyboard.mOccupiedHeight
