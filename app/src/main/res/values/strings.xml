@@ -236,6 +236,10 @@
     <string name="load_gesture_library">Load gesture typing library</string>
     <!-- Description for "load_gesture_library" option -->
     <string name="load_gesture_library_summary">Provide a native library to enable gesture typing</string>
+    <!-- Title of the setting to record swipes into a local corpus file -->
+    <string name="record_gesture_corpus">Record gesture corpus</string>
+    <!-- Description of the setting to record swipes into a local corpus file -->
+    <string name="record_gesture_corpus_summary">Log every swipe (touch path, keyboard layout, suggested words and your corrections) to gesture_corpus.jsonl in this app\'s external files folder. Local only, never uploaded. Includes the words you swipe.</string>
     <!-- Message in load gesture library dialog -->
     <string name="load_gesture_library_message">You will need the library for \'%s\'. Incompatible libraries may crash when using gesture typing.
         \n\nWarning: loading external code can be a security risk. Only use a library from a source you trust.</string>

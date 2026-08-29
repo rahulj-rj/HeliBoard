@@ -6,6 +6,7 @@ import android.os.Build
 import helium314.keyboard.keyboard.emoji.SupportedEmojis
 import helium314.keyboard.latin.define.DebugFlags
 import helium314.keyboard.latin.settings.Defaults
+import helium314.keyboard.latin.gesture.GestureCorpusRecorder
 import helium314.keyboard.latin.settings.Settings
 import helium314.keyboard.latin.utils.FoldableUtils
 import helium314.keyboard.latin.utils.LayoutUtilsCustom
@@ -24,6 +25,7 @@ class App : Application() {
         FoldableUtils.init(this)
         Settings.init(this)
         SubtypeSettings.init(this)
+        GestureCorpusRecorder.init(this)
 
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch { // do some uncritical work in background for faster startup

@@ -51,6 +51,7 @@ import helium314.keyboard.latin.common.SuggestionSpanUtilsKt;
 import helium314.keyboard.latin.define.DebugFlags;
 import helium314.keyboard.latin.settings.Settings;
 import helium314.keyboard.latin.settings.SettingsValues;
+import helium314.keyboard.latin.gesture.GestureCorpusRecorder;
 import helium314.keyboard.latin.settings.SpacingAndPunctuations;
 import helium314.keyboard.latin.suggestions.SuggestionStripViewAccessor;
 import helium314.keyboard.latin.utils.AsyncResultHolder;
@@ -353,8 +354,11 @@ public final class InputLogic {
             return inputTransaction;
         }
 
+        final boolean pickedForBatchWord = mWordComposer.isBatchMode();
         commitChosenWord(settingsValues, suggestion, LastComposedWord.COMMIT_TYPE_MANUAL_PICK, LastComposedWord.NOT_A_SEPARATOR);
         mConnection.endBatchEdit();
+        if (pickedForBatchWord) GestureCorpusRecorder.INSTANCE.onSuggestionPicked(suggestion);
+        else GestureCorpusRecorder.INSTANCE.onWordSettled();
         // Don't allow cancellation of manual pick
         mLastComposedWord.deactivate();
         // Space state must be updated before calling updateShiftState
@@ -1361,6 +1365,7 @@ public final class InputLogic {
                 final String rejectedSuggestion = mWordComposer.getTypedWord();
                 mWordComposer.reset();
                 mWordComposer.setRejectedBatchModeSuggestion(rejectedSuggestion);
+                GestureCorpusRecorder.INSTANCE.onWordDeleted();
                 if (!TextUtils.isEmpty(rejectedSuggestion)) {
                     unlearnWord(rejectedSuggestion, inputTransaction.getSettingsValues(),
                             Constants.EVENT_REJECTION);

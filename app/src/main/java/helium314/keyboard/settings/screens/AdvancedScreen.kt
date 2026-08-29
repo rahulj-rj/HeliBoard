@@ -90,7 +90,8 @@ fun AdvancedSettingsScreen(
         R.string.settings_category_experimental,
         Settings.PREF_EMOJI_MAX_SDK,
         Settings.PREF_URL_DETECTION,
-        if (BuildConfig.BUILD_TYPE != "nouserlib") SettingsWithoutKey.LOAD_GESTURE_LIB else null
+        if (BuildConfig.BUILD_TYPE != "nouserlib") SettingsWithoutKey.LOAD_GESTURE_LIB else null,
+        Settings.PREF_RECORD_GESTURE_CORPUS,
     )
     SearchSettingsScreen(
         onClickBack = onClickBack,
@@ -267,6 +268,9 @@ fun createAdvancedSettings(context: Context) = listOf(
     },
     Setting(context, SettingsWithoutKey.LOAD_GESTURE_LIB, R.string.load_gesture_library, R.string.load_gesture_library_summary) {
         LoadGestureLibPreference(it)
+    },
+    Setting(context, Settings.PREF_RECORD_GESTURE_CORPUS, R.string.record_gesture_corpus, R.string.record_gesture_corpus_summary) {
+        SwitchPreference(it, Defaults.PREF_RECORD_GESTURE_CORPUS)
     },
 )
 
