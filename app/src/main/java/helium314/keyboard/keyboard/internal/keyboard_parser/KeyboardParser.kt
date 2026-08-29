@@ -357,15 +357,14 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
         )
 
         // per-key popup lists for qwerty with number row: every US-qwerty symbol (shifted included)
-        //  holds a primary slot: {}[]|\ on tyuiop, ;:-/ on hjkl, <>,.!? on xcvbnm, '" on we,
-        //  @ on a, arithmetic on rdfg; non-keyboard symbols only on spare keys or as secondaries
-        //  (€ ₹ live on the number row's 1 and 2 popups)
+        //  user-specified map: ~₹€%{}[]|\ on qwertyuiop, @+-_*'":; on asdfghjkl, ×÷<>=!? on zxcvbnm;
+        //  ` behind ~ on q; € ₹ also on the number row's 1 and 2 popups
         private val qwertySymbolOverlay = listOf(
-            listOf(listOf("~", "`"), listOf("'"), listOf("\""), listOf("=", "±"), listOf("{"),
+            listOf(listOf("~", "`"), listOf("₹"), listOf("€"), listOf("%"), listOf("{"),
                 listOf("}"), listOf("["), listOf("]"), listOf("|"), listOf("\\")),
-            listOf(listOf("@"), listOf("—"), listOf("_"), listOf("+"), listOf("×", "÷"),
-                listOf(";"), listOf(":"), listOf("-"), listOf("/")),
-            listOf(listOf("…", "°"), listOf("<"), listOf(">"), listOf(","), listOf("."), listOf("!"), listOf("?"))
+            listOf(listOf("@"), listOf("+"), listOf("-"), listOf("_"), listOf("*"),
+                listOf("'"), listOf("\""), listOf(":"), listOf(";")),
+            listOf(listOf("×"), listOf("÷"), listOf("<"), listOf(">"), listOf("="), listOf("!"), listOf("?"))
         )
     }
 
