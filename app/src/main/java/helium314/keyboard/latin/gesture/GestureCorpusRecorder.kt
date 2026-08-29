@@ -3,6 +3,7 @@ package helium314.keyboard.latin.gesture
 
 import android.content.Context
 import helium314.keyboard.keyboard.Keyboard
+import helium314.keyboard.latin.BuildConfig
 import helium314.keyboard.latin.SuggestedWords.SuggestedWordInfo
 import helium314.keyboard.latin.common.ComposedData
 import helium314.keyboard.latin.settings.Settings
@@ -69,6 +70,8 @@ object GestureCorpusRecorder {
                 obj.put("id", id)
                 obj.put("time", time)
                 obj.put("source", "keyboard")
+                // which decoder produced the candidates: Google's lib (reliable pseudo-label) or the in-tree one (lab flavor)
+                obj.put("decoder", if (BuildConfig.USE_OWN_GESTURE_DECODER) "own" else "native")
                 obj.put("locale", localeTag)
                 obj.put("layout", layoutName)
                 obj.put("committed", cands.firstOrNull()?.first ?: "")
