@@ -360,13 +360,13 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
         )
 
         // per-key popup lists for qwerty with number row: every US-qwerty symbol (shifted included)
-        //  user-specified map: ~₹€%{}[]|\ on qwertyuiop, @+-_*=":; on asdfghjkl, ×÷<>,!? on zxcvbnm;
+        //  user-specified map: ~₹€%{}[]|\ on qwertyuiop, @+-_:;'"/ on asdfghjkl, ×÷<>,!? on zxcvbnm;
         //  ` behind ~ on q; € ₹ also on the number row's 1 and 2 popups
         private val qwertySymbolOverlay = listOf(
             listOf(listOf("~", "`"), listOf("₹"), listOf("€"), listOf("%"), listOf("{"),
                 listOf("}"), listOf("["), listOf("]"), listOf("|"), listOf("\\")),
-            listOf(listOf("@"), listOf("+"), listOf("-"), listOf("_"), listOf("*"),
-                listOf("="), listOf("\""), listOf(":"), listOf(";")),
+            listOf(listOf("@"), listOf("+"), listOf("-"), listOf("_"), listOf(":"),
+                listOf(";"), listOf("'"), listOf("\""), listOf("/")),
             listOf(listOf("×"), listOf("÷"), listOf("<"), listOf(">"), listOf(","), listOf("!"), listOf("?"))
         )
     }
