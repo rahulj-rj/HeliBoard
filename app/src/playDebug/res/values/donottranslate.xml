@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- playDebug: the debug build type's label override would otherwise win over the play flavor's -->
+<resources>
+    <string name="english_ime_name" translatable="false">Curmudgeon Keyboard debug</string>
+</resources>

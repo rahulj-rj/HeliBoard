@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- play flavor overrides: app + IME label shown in the launcher and Android's IME picker -->
+<resources>
+    <string name="english_ime_name" translatable="false">Curmudgeon Keyboard</string>
+</resources>

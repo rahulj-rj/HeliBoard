@@ -1,5 +1,6 @@
 import com.android.build.api.variant.ApplicationVariant
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -22,6 +23,23 @@ android {
             abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
         }
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    }
+
+    // Play upload key (Play App Signing holds the real signing key). Lives OUTSIDE the repo:
+    // ~/.android-keys/curmudgeon-upload.properties with storeFile/storePassword/keyAlias/keyPassword.
+    val playKeyProps = Properties().apply {
+        val f = File(System.getProperty("user.home"), ".android-keys/curmudgeon-upload.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    signingConfigs {
+        if (playKeyProps.isNotEmpty()) {
+            create("play") {
+                storeFile = File(playKeyProps.getProperty("storeFile"))
+                storePassword = playKeyProps.getProperty("storePassword")
+                keyAlias = playKeyProps.getProperty("keyAlias")
+                keyPassword = playKeyProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -65,13 +83,23 @@ android {
                 variant.proguardFiles.add(project.layout.buildDirectory.file(project.buildFile.parent + "/dontoptimize.pro"))
                 variant.proguardFiles.add(project.layout.buildDirectory.file(project.buildFile.parent + "/proguard-rules.pro"))
             }
+            if (variant.flavorName == "play") {
+                // Play ships en-US only (docs/dictionary-plan.md, phase 0); drop the other 17 bundled dictionaries
+                variant.androidResources.ignoreAssetsPatterns = listOf(
+                    "main_bg.dict", "main_bn.dict", "main_de.dict", "main_el.dict", "main_en-GB.dict",
+                    "main_es.dict", "main_fr.dict", "main_hu.dict", "main_it.dict", "main_nl.dict",
+                    "main_pl.dict", "main_pt-BR.dict", "main_pt-PT.dict", "main_ro.dict", "main_ru.dict",
+                    "main_sv.dict", "main_tr.dict"
+                )
+            }
             variant.outputs.forEach { output ->
                 if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                    // keep the historical name for the normal flavor, distinct name for lab
-                    output.outputFileName = if (variant.flavorName == "lab")
-                        "HeliBoard_Lab_${defaultConfig.versionName}-${variant.buildType}.apk"
-                    else
-                        "HeliBoard_${defaultConfig.versionName}-${variant.buildType}.apk"
+                    // keep the historical name for the normal flavor, distinct names for lab and play
+                    output.outputFileName = when (variant.flavorName) {
+                        "lab" -> "HeliBoard_Lab_${defaultConfig.versionName}-${variant.buildType}.apk"
+                        "play" -> "Curmudgeon_Keyboard_0.1.0-${variant.buildType}.apk"
+                        else -> "HeliBoard_${defaultConfig.versionName}-${variant.buildType}.apk"
+                    }
                 }
             }
         }
@@ -91,6 +119,18 @@ android {
             dimension = "distribution"
             applicationIdSuffix = ".lab"
             buildConfigField("boolean", "USE_OWN_GESTURE_DECODER", "true")
+        }
+        // "play" is the Google Play build of the Lab keyboard: own package name and label,
+        // own gesture decoder (Google's library can't ship on Play), en-US dictionary only.
+        // Build it with the nouserlib build type so the "load gesture library" setting is gone:
+        //   ./gradlew :app:bundlePlayNouserlib
+        create("play") {
+            dimension = "distribution"
+            applicationId = "app.curmudgeon.keyboard"
+            versionCode = 1
+            versionName = "0.1.0"
+            buildConfigField("boolean", "USE_OWN_GESTURE_DECODER", "true")
+            if (playKeyProps.isNotEmpty()) signingConfig = signingConfigs.getByName("play")
         }
     }
 
