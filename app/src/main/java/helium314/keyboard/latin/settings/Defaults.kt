@@ -44,9 +44,9 @@ object Defaults {
     private const val DEFAULT_SIZE_SCALE = 1.0f // 100%
     const val PREF_THEME_STYLE = KeyboardTheme.STYLE_MATERIAL
     const val PREF_ICON_STYLE = KeyboardTheme.STYLE_MATERIAL
-    const val PREF_THEME_COLORS = KeyboardTheme.THEME_LIGHT
-    const val PREF_THEME_COLORS_NIGHT = KeyboardTheme.THEME_DARK
-    const val PREF_THEME_KEY_BORDERS = false
+    const val PREF_THEME_COLORS = KeyboardTheme.THEME_MIDNIGHT
+    const val PREF_THEME_COLORS_NIGHT = KeyboardTheme.THEME_MIDNIGHT
+    const val PREF_THEME_KEY_BORDERS = true
     @JvmField
     val PREF_THEME_DAY_NIGHT = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
     const val PREF_CUSTOM_ICON_NAMES = ""
@@ -141,7 +141,7 @@ object Defaults {
     @SuppressLint("RtlHardcoded")
     const val PREF_ONE_HANDED_GRAVITY = Gravity.LEFT
     const val PREF_ONE_HANDED_SCALE = 1f
-    const val PREF_SHOW_NUMBER_ROW = false
+    const val PREF_SHOW_NUMBER_ROW = true // Curmudgeon default: the letter-key symbol map assumes the number row is shown
     const val PREF_SHOW_NUMBER_ROW_IN_SYMBOLS = true
     const val PREF_LOCALIZED_NUMBER_ROW = true
     const val PREF_SHOW_NUMBER_ROW_HINTS = true
@@ -151,6 +151,9 @@ object Defaults {
     const val PREF_POPUP_KEYS_LABELS_ORDER = POPUP_KEYS_LABEL_DEFAULT
     const val PREF_SHOW_POPUP_HINTS = false
     const val PREF_SHOW_TLD_POPUP_KEYS = true
+    const val PREF_ADVANCED_SETTINGS = false // simple settings menu by default; switch at the top of the main screen
+    // letter followed by its popup symbols, entries separated by whitespace; only used when the number row is on
+    const val PREF_SYMBOL_POPUP_MAP = "q~` w× e÷ r{ t} y[ u] i| o_ p- a@ s+ d—– f… g: h; j' k\" l/ z= x\\ c< v> b, n! m?"
     const val PREF_RECORD_GESTURE_CORPUS = false
     const val PREF_MORE_POPUP_KEYS = "main"
     const val PREF_SPACE_TO_CHANGE_LANG = true
@@ -162,7 +165,7 @@ object Defaults {
     const val PREF_ADD_TO_PERSONAL_DICTIONARY = false
     @JvmField
     val PREF_NAVBAR_COLOR = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-    const val PREF_NARROW_KEY_GAPS = false
+    const val PREF_NARROW_KEY_GAPS = true
     const val PREF_ENABLED_SUBTYPES = ""
     const val PREF_SELECTED_SUBTYPE = ""
     const val PREF_URL_DETECTION = true // fork: default on so email addresses compose and get learned as single words
@@ -186,7 +189,8 @@ object Defaults {
     const val PREF_EMOJI_RECENT_KEYS = ""
     const val PREF_LAST_SHOWN_EMOJI_CATEGORY_PAGE_ID = 0
     const val PREF_SHOW_DEBUG_SETTINGS = false
-    val PREF_DEBUG_MODE = BuildConfig.DEBUG
+    // debug mode paints locale/confidence info on the space bar etc.; the play flavor's debug build should look like the release
+    val PREF_DEBUG_MODE = BuildConfig.DEBUG && BuildConfig.FLAVOR != "play"
     const val PREF_SHOW_SUGGESTION_INFOS = false
     const val PREF_FORCE_NON_DISTINCT_MULTITOUCH = false
     const val PREF_SLIDING_KEY_INPUT_PREVIEW = true

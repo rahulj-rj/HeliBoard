@@ -55,7 +55,10 @@ fun GestureTypingScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_gesture),
-        settings = items
+        settings = items,
+        simpleModeKeys = setOf(
+            Settings.PREF_GESTURE_INPUT, Settings.PREF_GESTURE_PREVIEW_TRAIL, Settings.PREF_GESTURE_SPACE_AWARE,
+        ),
     )
 }
 

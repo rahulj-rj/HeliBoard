@@ -2,11 +2,11 @@
     [
       { "$": "shift_state_selector",
         "manualOrLocked": { "label": "!" },
-        "default": { "label": "1", "popup": { "main": { "label": "!" }, "relevant": [{ "label": "€" }, { "label": "¹" }, { "label": "½" }, { "label": "⅓" }, { "label": "¼" }, { "label": "⅛" }] } }
+        "default": { "label": "1", "popup": { "main": { "label": "!" }, "relevant": [{ "label": "¹" }, { "label": "½" }, { "label": "⅓" }, { "label": "¼" }, { "label": "⅛" }] } }
       },
       { "$": "shift_state_selector",
         "manualOrLocked": { "label": "@" },
-        "default": { "label": "2", "popup": { "main": { "label": "@" }, "relevant": [{ "label": "₹" }, { "label": "²" }, { "label": "⅔" }] } }
+        "default": { "label": "2", "popup": { "main": { "label": "@" }, "relevant": [{ "label": "²" }, { "label": "⅔" }] } }
       },
       { "$": "shift_state_selector",
         "manualOrLocked": { "label": "#" },
@@ -14,7 +14,7 @@
       },
       { "$": "shift_state_selector",
         "manualOrLocked": { "label": "$" },
-        "default": { "label": "4", "popup": { "main": { "label": "$" }, "relevant": [{ "label": "⁴" }] } }
+        "default": { "label": "4", "popup": { "main": { "label": "$" }, "relevant": [{ "label": "€" }, { "label": "£" }, { "label": "¥" }, { "label": "₹" }, { "label": "⁴" }] } }
       },
       { "$": "shift_state_selector",
         "manualOrLocked": { "label": "%" },

@@ -96,7 +96,11 @@ fun AdvancedSettingsScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_advanced),
-        settings = items
+        settings = items,
+        simpleModeKeys = setOf(
+            Settings.PREF_KEY_LONGPRESS_TIMEOUT, SettingsWithoutKey.BACKUP_RESTORE,
+            DebugSettings.PREF_SHOW_DEBUG_SETTINGS, SettingsWithoutKey.DEBUG_SETTINGS,
+        ),
     )
 }
 

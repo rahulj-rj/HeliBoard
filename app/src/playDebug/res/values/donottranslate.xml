@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- playDebug: the debug build type's label override would otherwise win over the play flavor's -->
+<!-- playDebug: the debug build type's label overrides would otherwise win over the play flavor's -->
 <resources>
     <string name="english_ime_name" translatable="false">Curmudgeon Keyboard debug</string>
+    <string name="ime_settings" translatable="false">Curmudgeon Keyboard Settings</string>
+    <string name="spell_checker_service_name" translatable="false">Curmudgeon Keyboard Spell Checker</string>
+    <string name="android_spell_checker_settings" translatable="false">Curmudgeon Keyboard Spell Checker Settings</string>
 </resources>

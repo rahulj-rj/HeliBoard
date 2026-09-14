@@ -39,7 +39,8 @@ fun SecondaryLayoutScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_secondary_layouts),
-        settings = LayoutType.entries.filter { it != LayoutType.MAIN }.map { Settings.PREF_LAYOUT_PREFIX + it.name }
+        settings = LayoutType.entries.filter { it != LayoutType.MAIN }.map { Settings.PREF_LAYOUT_PREFIX + it.name },
+        simpleModeKeys = emptySet(), // advanced-only screen: empties if the switch is turned off while here
     )
 }
 

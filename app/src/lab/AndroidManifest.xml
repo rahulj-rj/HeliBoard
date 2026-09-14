@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- lab flavor manifest overlay: adds the Swipe Trainer (scorer comparison / corpus
-     recording tool). Merged into the main manifest for the lab flavor only, so the
-     normal flavor contains no trace of it. -->
+<!-- lab flavor manifest overlay: gives the Swipe Trainer (declared in the main manifest) its own
+     launcher icon. Other flavors reach it from Debug settings only. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
         <activity
             android:name="helium314.keyboard.lab.SwipeTrainerActivity"
-            android:label="Swipe Trainer"
+            android:label="@string/swipe_trainer"
             android:icon="@mipmap/ic_launcher"
-            android:exported="true"
-            android:windowSoftInputMode="stateVisible|adjustResize">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

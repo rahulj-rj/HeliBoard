@@ -16,10 +16,12 @@ import helium314.keyboard.keyboard.internal.keyboard_parser.floris.SimplePopups
 import helium314.keyboard.keyboard.internal.keyboard_parser.floris.TextKeyData
 import helium314.keyboard.latin.common.isEmoji
 import helium314.keyboard.latin.define.DebugFlags
+import helium314.keyboard.latin.settings.Defaults
 import helium314.keyboard.latin.settings.Settings
 import helium314.keyboard.latin.utils.LayoutType
 import helium314.keyboard.latin.utils.POPUP_KEYS_LAYOUT
 import helium314.keyboard.latin.utils.POPUP_KEYS_NUMBER
+import helium314.keyboard.latin.utils.prefs
 import helium314.keyboard.latin.utils.replaceFirst
 import helium314.keyboard.latin.utils.splitAt
 import helium314.keyboard.latin.utils.sumOf
@@ -289,21 +291,27 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
         }
     }
 
-    private fun qwertyOverlayApplies() =
-        params.mId.mNumberRowEnabled && params.mId.mSubtype.mainLayoutName == "qwerty"
+    /** Applies the user's letter → symbol popup map (Settings.PREF_SYMBOL_POPUP_MAP) to matching letter keys.
+     *  Keyed by key label rather than position so it works for qwertz, dvorak, custom layouts etc.
+     *  Returns false if nothing matched (e.g. non-Latin layout or empty map) so the caller can fall back. */
+    private fun addUserSymbolPopupKeys(baseKeys: MutableList<MutableList<KeyData>>): Boolean {
+        val map = parseSymbolPopupMap(context.prefs().getString(Settings.PREF_SYMBOL_POPUP_MAP, Defaults.PREF_SYMBOL_POPUP_MAP)!!)
+        if (map.isEmpty()) return false
+        var matched = false
+        baseKeys.forEach { row ->
+            row.forEachIndexed { j, key ->
+                val popups = map[key.label.lowercase()] ?: return@forEachIndexed
+                row[j] = key.copy(newPopup = SimplePopups(popups).merge(key.popup))
+                matched = true
+            }
+        }
+        return matched
+    }
 
     private fun addSymbolPopupKeys(baseKeys: MutableList<MutableList<KeyData>>) {
-        if (qwertyOverlayApplies()) {
-            // physical-keyboard-inspired popups: shift pairs share a key, arithmetic signs adjacent,
-            //  nothing duplicating the !@#$%^&*() already provided by the number row popups
-            qwertySymbolOverlay.forEachIndexed { i, row ->
-                val baseRow = baseKeys.getOrNull(i) ?: return@forEachIndexed
-                row.forEachIndexed { j, popups ->
-                    baseRow.getOrNull(j)?.let { baseRow[j] = it.copy(newPopup = SimplePopups(popups).merge(it.popup)) }
-                }
-            }
-            return
-        }
+        // with the number row on, !@#$%^&*() are already reachable there, so the letter keys get the
+        //  user's own map instead (default: every remaining US-qwerty symbol, shift pairs sharing a key)
+        if (params.mId.mNumberRowEnabled && addUserSymbolPopupKeys(baseKeys)) return
         val layout = LayoutParser.parseLayout(LayoutType.SYMBOLS, params, context)
         // when the number row is shown its popups already provide !@#$%^&*(),
         //  so replace those on letter keys with symbols not otherwise reachable by long-press
@@ -359,16 +367,30 @@ class KeyboardParser(private val params: KeyboardParams, private val context: Co
             "(" to "«", ")" to "»", "*" to "×", "!" to "÷"
         )
 
-        // per-key popup lists for qwerty with number row: every US-qwerty symbol (shifted included)
-        //  user-specified map: ~₹€{}[]|\= on qwertyuiop, @+-_:;'"/ on asdfghjkl, ×÷<>,!? on zxcvbnm;
-        //  ` behind ~ on q; € ₹ also on the number row's 1 and 2 popups
-        private val qwertySymbolOverlay = listOf(
-            listOf(listOf("~", "`"), listOf("₹"), listOf("€"), listOf("{"), listOf("}"),
-                listOf("["), listOf("]"), listOf("|"), listOf("\\"), listOf("=")),
-            listOf(listOf("@"), listOf("+"), listOf("-"), listOf("_"), listOf(":"),
-                listOf(";"), listOf("'"), listOf("\""), listOf("/")),
-            listOf(listOf("×"), listOf("÷"), listOf("<"), listOf(">"), listOf(","), listOf("!"), listOf("?"))
-        )
+        /** "q~` w₹ e€ …" → {"q": ["~", "`"], "w": ["₹"], …}. Each whitespace-separated entry is a letter
+         *  followed by its popup symbols, one code point each, in popup order. Malformed entries are skipped. */
+        fun parseSymbolPopupMap(text: String): Map<String, List<String>> {
+            val map = LinkedHashMap<String, List<String>>()
+            for (entry in text.split(Regex("\\s+"))) {
+                val cps = entry.codePoints().toArray()
+                if (cps.size < 2 || !Character.isLetter(cps[0])) continue
+                val letter = String(cps, 0, 1).lowercase()
+                if (letter in map) continue // first entry wins
+                map[letter] = cps.drop(1).map { String(intArrayOf(it), 0, 1) }
+            }
+            return map
+        }
+
+        /** True if every whitespace-separated entry is a letter plus at least one symbol, with no letter repeated. */
+        fun isValidSymbolPopupMap(text: String): Boolean {
+            val entries = text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+            val letters = entries.map { e ->
+                val cps = e.codePoints().toArray()
+                if (cps.size < 2 || !Character.isLetter(cps[0])) return false
+                String(cps, 0, 1).lowercase()
+            }
+            return letters.size == letters.toSet().size
+        }
     }
 
 }

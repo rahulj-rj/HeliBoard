@@ -66,7 +66,8 @@ fun ToolbarScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_toolbar),
-        settings = items
+        settings = items,
+        simpleModeKeys = emptySet(), // advanced-only screen: empties if the switch is turned off while here
     )
 }
 

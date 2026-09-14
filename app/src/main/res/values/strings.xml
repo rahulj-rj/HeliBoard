@@ -313,6 +313,18 @@
     <string name="show_tld_popup_keys">Show TLD popup keys</string>
     <!-- Description of the setting to show TLD popup keys -->
     <string name="show_tld_popup_keys_summary">Show top level domains (.com, .org, …) as popups on the / and @ keys next to the space bar when typing URLs and email addresses</string>
+    <!-- Title of the setting to customize the symbol popups on letter keys -->
+    <string name="symbol_popup_map">Symbol popups on letter keys</string>
+    <!-- Description of the setting to customize the symbol popups on letter keys -->
+    <string name="symbol_popup_map_summary">Long-press symbols on letter keys when the number row is shown</string>
+    <!-- Instructions shown in the dialog for customizing symbol popups on letter keys -->
+    <string name="symbol_popup_map_detail">One entry per key, separated by spaces: the letter followed by its symbols in popup order, e.g. q~` puts ~ and ` on q. Only applies while the number row is shown.</string>
+    <!-- Title of the Swipe Trainer tool (own gesture decoder), launched from debug settings -->
+    <string name="swipe_trainer" translatable="false">Swipe Trainer</string>
+    <!-- Description of the Swipe Trainer entry in debug settings -->
+    <string name="swipe_trainer_summary">Compare the gesture decoder scorers on words you swipe and record a training corpus</string>
+    <!-- Label of the switch at the top of the settings screen that shows all settings instead of the simple subset -->
+    <string name="settings_mode_advanced">Advanced</string>
     <!-- Names of the popup key classes -->
     <string name="popup_keys_number" tools:keep="@string/popup_keys_number">Number row</string>
     <string name="popup_keys_language" translatable="false" tools:keep="@string/popup_keys_language">@string/subtype_locale</string>
@@ -718,6 +730,7 @@ New dictionary:
     <!-- Option for setting navbar to follow keyboard color -->
     <string name="theme_navbar">Color navigation bar</string>
     <!-- Theme name for light theme -->
+    <string name="theme_name_midnight" tools:keep="@string/theme_name_midnight">Midnight</string>
     <string name="theme_name_light" tools:keep="@string/theme_name_light">Light</string>
     <!-- Theme name for holo white theme -->
     <string name="theme_name_holo_white" tools:keep="@string/theme_name_holo_white">Holo White</string>
@@ -800,6 +813,10 @@ New dictionary:
     <string name="about_wiki_link_description">The Wiki can be improved by any GitHub user!</string>
     <!-- preference title for saving the log to a file -->
     <string name="save_log">Save log</string>
+    <!-- attribution line for about screen; forks are asked to keep it -->
+    <string name="about_based_on" translatable="false">Based on Curmudgeon Keyboard</string>
+    <!-- description of the attribution line: where the source of this build lives -->
+    <string name="about_based_on_summary">Free software under GPL-3.0. The complete source of this build is at github.com/rahulj-rj/HeliBoard, a fork of HeliBoard.</string>
     <!-- license for about screen-->
     <string name="license">Open-source license</string>
     <!-- license link for about screen-->

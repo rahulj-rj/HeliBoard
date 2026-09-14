@@ -8,6 +8,7 @@ object Links {
     const val DICTIONARY_EXPERIMENTAL_SUFFIX = "dictionaries_experimental/"
     const val DICTIONARY_EMOJI_CLDR_SUFFIX = "emoji_cldr_signal_dictionaries/"
     const val GITHUB = "https://github.com/HeliBorg/HeliBoard"
+    const val CURMUDGEON_SOURCE = "https://github.com/rahulj-rj/HeliBoard" // source of this fork; keep this attribution in derived works
     const val LICENSE = "$GITHUB/blob/main/LICENSE"
     const val WIKI_URL = "$GITHUB/wiki"
     const val LAYOUT_WIKI_URL = "$WIKI_URL/2.-Layouts"

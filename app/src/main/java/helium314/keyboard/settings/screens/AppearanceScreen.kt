@@ -106,7 +106,11 @@ fun AppearanceScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_appearance),
-        settings = items
+        settings = items,
+        simpleModeKeys = setOf(
+            Settings.PREF_THEME_COLORS, Settings.PREF_THEME_KEY_BORDERS, Settings.PREF_THEME_DAY_NIGHT,
+            Settings.PREF_THEME_COLORS_NIGHT, Settings.PREF_KEYBOARD_HEIGHT_SCALE_PREFIX, Settings.PREF_FONT_SCALE,
+        ),
     )
 }
 

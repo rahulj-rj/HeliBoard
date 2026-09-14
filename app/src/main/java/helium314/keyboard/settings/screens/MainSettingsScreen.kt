@@ -12,7 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import helium314.keyboard.settings.SettingsMode
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +47,7 @@ fun MainSettingsScreen(
     onClickDictionaries: () -> Unit,
     onClickBack: () -> Unit,
 ) {
+    val advanced by SettingsMode.state(LocalContext.current)
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.ime_settings),
@@ -71,7 +74,7 @@ fun MainSettingsScreen(
                     onClick = onClickAppearance,
                     icon = R.drawable.ic_settings_appearance
                 ) { NextScreenIcon() }
-                Preference(
+                if (advanced) Preference(
                     name = stringResource(R.string.settings_screen_toolbar),
                     onClick = onClickToolbar,
                     icon = R.drawable.ic_settings_toolbar
@@ -94,7 +97,7 @@ fun MainSettingsScreen(
                     onClick = onClickTextCorrection,
                     icon = R.drawable.ic_settings_correction
                 ) { NextScreenIcon() }
-                Preference(
+                if (advanced) Preference(
                     name = stringResource(R.string.settings_screen_secondary_layouts),
                     onClick = onClickLayouts,
                     icon = R.drawable.ic_ime_switcher

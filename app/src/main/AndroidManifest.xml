@@ -27,6 +27,12 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
             tools:remove="android:appComponentFactory"
             tools:targetApi="p">
 
+        <!-- Swipe Trainer: own-decoder scorer comparison / corpus tool. Launched from Debug settings
+             (behind "Show debug settings"); the lab flavor additionally gives it a launcher icon. -->
+        <activity android:name="helium314.keyboard.lab.SwipeTrainerActivity"
+                android:label="@string/swipe_trainer"
+                android:windowSoftInputMode="stateVisible|adjustResize" />
+
         <!-- Services -->
         <service android:name="LatinIME"
                 android:label="@string/english_ime_name"

@@ -18,6 +18,7 @@ import helium314.keyboard.latin.R
 import helium314.keyboard.latin.settings.DebugSettings
 import helium314.keyboard.latin.settings.Defaults
 import helium314.keyboard.latin.utils.prefs
+import helium314.keyboard.lab.SwipeTrainerActivity
 import helium314.keyboard.settings.Setting
 import helium314.keyboard.settings.preferences.ListPreference
 import helium314.keyboard.settings.preferences.Preference
@@ -42,6 +43,7 @@ fun DebugScreen(
         DebugSettings.PREF_FORCE_NON_DISTINCT_MULTITOUCH,
         DebugSettings.PREF_SLIDING_KEY_INPUT_PREVIEW,
         if (BuildConfig.USE_OWN_GESTURE_DECODER) DebugSettings.PREF_GESTURE_DECODER_SCORER else null,
+        if (BuildConfig.USE_OWN_GESTURE_DECODER) DebugSettings.PREF_KEY_SWIPE_TRAINER else null,
         R.string.prefs_dump_dynamic_dicts
     ) + DictionaryFacilitator.DYNAMIC_DICTIONARY_TYPES.map { DebugSettings.PREF_KEY_DUMP_DICT_PREFIX + it }
     SearchSettingsScreen(
@@ -100,6 +102,14 @@ private fun createDebugSettings(context: Context) = listOf(
         // only listed in the lab flavor (see items in DebugScreen)
         val items = listOf("Hybrid" to "hybrid", "Kushler (patent)" to "kushler", "SHARK²" to "shark2")
         ListPreference(setting, items, Defaults.PREF_GESTURE_DECODER_SCORER)
+    },
+    Setting(context, DebugSettings.PREF_KEY_SWIPE_TRAINER, R.string.swipe_trainer, R.string.swipe_trainer_summary) { setting ->
+        val ctx = LocalContext.current
+        Preference(
+            name = setting.title,
+            description = setting.description,
+            onClick = { ctx.startActivity(Intent(ctx, SwipeTrainerActivity::class.java)) }
+        )
     },
 ) + DictionaryFacilitator.DYNAMIC_DICTIONARY_TYPES.map { type ->
     Setting(context, DebugSettings.PREF_KEY_DUMP_DICT_PREFIX + type, R.string.button_default) {

@@ -4,7 +4,16 @@ package helium314.keyboard.settings.screens
 import android.content.Context
 import android.media.AudioManager
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.core.content.edit
+import helium314.keyboard.keyboard.internal.keyboard_parser.KeyboardParser
+import helium314.keyboard.settings.dialogs.TextInputDialog
+import helium314.keyboard.settings.preferences.Preference
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -50,6 +59,7 @@ fun PreferencesScreen(
         Settings.PREF_POPUP_KEYS_ORDER,
         Settings.PREF_SHOW_POPUP_HINTS,
         Settings.PREF_SHOW_TLD_POPUP_KEYS,
+        Settings.PREF_SYMBOL_POPUP_MAP,
         Settings.PREF_POPUP_ON,
         if (AudioAndHapticFeedbackManager.getInstance().hasVibrator())
             Settings.PREF_VIBRATE_ON else null,
@@ -83,7 +93,12 @@ fun PreferencesScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_preferences),
-        settings = items
+        settings = items,
+        simpleModeKeys = setOf(
+            Settings.PREF_SHOW_HINTS, Settings.PREF_SYMBOL_POPUP_MAP, Settings.PREF_POPUP_ON,
+            Settings.PREF_VIBRATE_ON, Settings.PREF_SOUND_ON, Settings.PREF_SHOW_NUMBER_ROW,
+            Settings.PREF_SHOW_EMOJI_KEY, Settings.PREF_ENABLE_CLIPBOARD_HISTORY,
+        ),
     )
 }
 
@@ -105,6 +120,28 @@ fun createPreferencesSettings(context: Context) = listOf(
         R.string.show_tld_popup_keys_summary
     ) {
         SwitchPreference(it, Defaults.PREF_SHOW_TLD_POPUP_KEYS) { KeyboardSwitcher.getInstance().setThemeNeedsReload() }
+    },
+    Setting(context, Settings.PREF_SYMBOL_POPUP_MAP, R.string.symbol_popup_map, R.string.symbol_popup_map_summary) { setting ->
+        var showDialog by rememberSaveable { mutableStateOf(false) }
+        Preference(
+            name = setting.title,
+            description = setting.description,
+            onClick = { showDialog = true }
+        )
+        if (showDialog) {
+            val prefs = LocalContext.current.prefs()
+            TextInputDialog(
+                onDismissRequest = { showDialog = false },
+                textInputLabel = { Text(stringResource(R.string.symbol_popup_map_detail)) },
+                initialText = prefs.getString(setting.key, Defaults.PREF_SYMBOL_POPUP_MAP)!!,
+                onConfirmed = { prefs.edit { putString(setting.key, it.trim()) }; KeyboardLayoutSet.onSystemLocaleChanged() },
+                title = { Text(stringResource(R.string.symbol_popup_map)) },
+                neutralButtonText = if (prefs.contains(setting.key)) stringResource(R.string.button_default) else null,
+                onNeutral = { prefs.edit { remove(setting.key) }; KeyboardLayoutSet.onSystemLocaleChanged() },
+                singleLine = false,
+                checkTextValid = { KeyboardParser.isValidSymbolPopupMap(it) }
+            )
+        }
     },
     Setting(context, Settings.PREF_SHOW_POPUP_HINTS, R.string.show_popup_hints, R.string.show_popup_hints_summary) {
         SwitchPreference(it, Defaults.PREF_SHOW_POPUP_HINTS) { KeyboardSwitcher.getInstance().setThemeNeedsReload() }

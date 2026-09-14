@@ -98,7 +98,13 @@ fun TextCorrectionScreen(
     SearchSettingsScreen(
         onClickBack = onClickBack,
         title = stringResource(R.string.settings_screen_correction),
-        settings = items
+        settings = items,
+        simpleModeKeys = setOf(
+            SettingsWithoutKey.EDIT_PERSONAL_DICTIONARY, Settings.PREF_AUTO_CORRECTION, Settings.PREF_AUTO_CAP,
+            Settings.PREF_KEY_USE_DOUBLE_SPACE_PERIOD, Settings.PREF_AUTOSPACE_AFTER_SUGGESTION,
+            Settings.PREF_SHOW_SUGGESTIONS, Settings.PREF_SUGGEST_EMOJIS, Settings.PREF_USE_CONTACTS,
+            Settings.PREF_ADD_TO_PERSONAL_DICTIONARY,
+        ),
     )
 }
 

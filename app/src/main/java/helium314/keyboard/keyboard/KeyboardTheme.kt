@@ -49,6 +49,7 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
         const val STYLE_ROUNDED = "Rounded"
 
         // new themes that are just colors
+        const val THEME_MIDNIGHT = "midnight" // Curmudgeon default look (same colours as black)
         const val THEME_LIGHT = "light"
         const val THEME_HOLO_WHITE = "holo_white"
         const val THEME_DARK = "dark"
@@ -66,6 +67,7 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
         const val THEME_SAND = "sand"
         const val THEME_VIOLETTE = "violette"
         fun getAvailableDefaultColors(prefs: SharedPreferences, isNight: Boolean) = listOfNotNull(
+            THEME_MIDNIGHT,
             if (!isNight) THEME_LIGHT else null, THEME_DARK,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) THEME_DYNAMIC else null,
             if (prefs.getString(Settings.PREF_THEME_STYLE, Defaults.PREF_THEME_STYLE) == STYLE_HOLO) THEME_HOLO_WHITE else null,
@@ -152,6 +154,18 @@ private constructor(val themeId: Int, @JvmField val mStyleId: Int) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) DynamicColors(context, themeStyle, hasBorders, backgroundImage)
                     else getThemeColors(THEME_LIGHT, themeStyle, context, prefs, isNight)
                 }
+                THEME_MIDNIGHT -> DefaultColors( // Rahul's daily-driver look: identical to "black" (with key borders on by default)
+                    themeStyle,
+                    hasBorders,
+                    ContextCompat.getColor(context, R.color.gesture_trail_color_lxx_dark),
+                    ContextCompat.getColor(context, R.color.background_amoled_black),
+                    ContextCompat.getColor(context, R.color.background_amoled_dark),
+                    ContextCompat.getColor(context, R.color.background_amoled_dark),
+                    ContextCompat.getColor(context, R.color.background_amoled_dark),
+                    ContextCompat.getColor(context, R.color.key_text_color_lxx_dark),
+                    ContextCompat.getColor(context, R.color.key_hint_letter_color_lxx_dark),
+                    keyboardBackground = backgroundImage
+                )
                 THEME_LIGHT -> DefaultColors(
                     themeStyle,
                     hasBorders,
