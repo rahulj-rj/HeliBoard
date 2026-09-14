@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- play flavor overrides: app + IME label shown in the launcher and Android's IME picker -->
+<!-- play flavor overrides: app + IME label shown in the launcher, Android's IME picker,
+     the settings title and the spell checker entries. Note: main's translated values-xx
+     strings for these still win on non-English system locales. -->
 <resources>
     <string name="english_ime_name" translatable="false">Curmudgeon Keyboard</string>
+    <string name="ime_settings" translatable="false">Curmudgeon Keyboard Settings</string>
+    <string name="spell_checker_service_name" translatable="false">Curmudgeon Keyboard Spell Checker</string>
+    <string name="android_spell_checker_settings" translatable="false">Curmudgeon Keyboard Spell Checker Settings</string>
 </resources>
