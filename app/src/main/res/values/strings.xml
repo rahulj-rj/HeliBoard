@@ -816,7 +816,7 @@ New dictionary:
     <!-- attribution line for about screen; forks are asked to keep it -->
     <string name="about_based_on" translatable="false">Based on Curmudgeon Keyboard</string>
     <!-- description of the attribution line: where the source of this build lives -->
-    <string name="about_based_on_summary">Free software under GPL-3.0. The complete source of this build is at github.com/rahulj-rj/HeliBoard, a fork of HeliBoard.</string>
+    <string name="about_based_on_summary">Free software under GPL-3.0. The complete source of this build is at github.com/curmudgeon-works/curmudgeon-keyboard, a fork of HeliBoard.</string>
     <!-- license for about screen-->
     <string name="license">Open-source license</string>
     <!-- license link for about screen-->
