@@ -51,7 +51,7 @@ import kotlin.collections.set
 fun checkVersionUpgrade(context: Context) {
     val prefs = context.prefs()
     val oldVersion = prefs.getInt(Settings.PREF_VERSION_CODE, 0)
-    if (oldVersion != BuildConfig.VERSION_CODE)
+    if (oldVersion != BuildConfig.MIGRATION_VERSION)
         AppUpgrade.onUpgrade(context)
 }
 
@@ -673,7 +673,7 @@ private object AppUpgrade {
         }
         upgradeToolbarPrefs(prefs)
         LayoutUtilsCustom.onLayoutFileChanged() // just to be sure
-        prefs.edit { putInt(Settings.PREF_VERSION_CODE, BuildConfig.VERSION_CODE) }
+        prefs.edit { putInt(Settings.PREF_VERSION_CODE, BuildConfig.MIGRATION_VERSION) }
     }
 
     // old variant for old folder structure

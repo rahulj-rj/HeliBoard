@@ -18,6 +18,10 @@ android {
         targetSdk = 36
         versionCode = 3901
         versionName = "3.9"
+        // Settings migrations in AppUpgrade are keyed on this, not on versionCode: the play flavor restarts
+        // versionCode at 1, which would otherwise re-run every HeliBoard migration on each Play update.
+        // Bump together with versionCode when merging upstream releases that add migrations.
+        buildConfigField("int", "MIGRATION_VERSION", "3901")
         ndk {
             abiFilters.clear()
             abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
